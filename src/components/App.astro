@@ -1,0 +1,226 @@
+---
+import Header from "../components/Header.astro";
+import Hero from "../components/Hero.astro";
+import Footer from "../components/Footer.astro";
+import Menu from "../components/Menu.astro";
+import Galeria from "../components/Galeria.astro";
+import AboutUs from "../components/AboutUs.astro";
+import Combos from "../components/Combos.astro";
+import CartSection from "./CartSection.astro";
+import { CommentsMarquee } from "../components/CommentsMarquee";
+import { AdMarquee } from "../components/AdMarquee";
+---
+
+<CartSection />
+
+<Header />
+<Hero />
+<AdMarquee client:load />
+<Menu />
+<Combos />
+<CommentsMarquee client:load />
+<Galeria />
+<AboutUs />
+<Footer />
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<style>
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--card);
+    border: 1px solid var(--gold);
+    color: var(--white);
+    padding: 0.75rem 2rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    z-index: 500;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    white-space: nowrap;
+  }
+  .toast.show {
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* ── REVEAL ANIMATIONS ── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition:
+      opacity 0.7s,
+      transform 0.7s;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+</style>
+
+<script>
+  // ── CART STATE ──
+  let cart = [];
+
+  const cartCount = document.getElementById("cartCount");
+  const cartItemsEl = document.getElementById("cartItems");
+  const cartEmpty = document.getElementById("cartEmpty");
+  const cartFooter = document.getElementById("cartFooter");
+  const cartSubtotal = document.getElementById("cartSubtotal");
+  const cartTotal = document.getElementById("cartTotal");
+  const toast = document.getElementById("toast");
+
+  // ── ADD TO CART ──
+  function addToCart(id, name, price, img) {
+    const existing = cart.find((i) => i.id === id);
+    if (existing) {
+      existing.qty++;
+    } else {
+      cart.push({ id, name, price: parseFloat(price), img, qty: 1 });
+    }
+    renderCart();
+    showToast(`${name} agregado ✓`);
+  }
+
+  // ── RENDER CART ──
+  function renderCart() {
+    const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+    cartCount.textContent = cart.reduce((s, i) => s + i.qty, 0);
+
+    if (cart.length === 0) {
+      cartEmpty.style.display = "block";
+      cartFooter.style.display = "none";
+      // Remove item elements
+      [...cartItemsEl.querySelectorAll(".cart-item")].forEach((el) =>
+        el.remove(),
+      );
+      return;
+    }
+
+    cartEmpty.style.display = "none";
+    cartFooter.style.display = "block";
+    cartSubtotal.textContent = `S/ ${total.toFixed(2)}`;
+    cartTotal.textContent = `S/ ${total.toFixed(2)}`;
+
+    // Re-render all items
+    [...cartItemsEl.querySelectorAll(".cart-item")].forEach((el) =>
+      el.remove(),
+    );
+    cart.forEach((item) => {
+      const el = document.createElement("div");
+      el.className = "cart-item";
+      el.dataset.id = item.id;
+      el.innerHTML = `
+          <img class="ci-img" src="${item.img}" alt="${item.name}" />
+          <div>
+            <div class="ci-name">${item.name}</div>
+            <div class="ci-price">S/ ${(item.price * item.qty).toFixed(2)}</div>
+          </div>
+          <div class="ci-controls">
+            <div class="qty-controls">
+              <button class="qty-btn" data-action="dec" data-id="${item.id}">−</button>
+              <span class="qty-num">${item.qty}</span>
+              <button class="qty-btn" data-action="inc" data-id="${item.id}">+</button>
+            </div>
+            <button class="remove-btn" data-id="${item.id}">Eliminar</button>
+          </div>
+        `;
+      cartItemsEl.appendChild(el);
+    });
+  }
+
+  // ── QTY + REMOVE (event delegation) ──
+  cartItemsEl.addEventListener("click", (e) => {
+    const id = e.target.dataset.id;
+    if (!id) return;
+
+    if (e.target.dataset.action === "inc") {
+      cart.find((i) => i.id === id).qty++;
+      renderCart();
+    } else if (e.target.dataset.action === "dec") {
+      const item = cart.find((i) => i.id === id);
+      if (item.qty > 1) {
+        item.qty--;
+      } else {
+        cart = cart.filter((i) => i.id !== id);
+      }
+      renderCart();
+    } else if (e.target.classList.contains("remove-btn")) {
+      cart = cart.filter((i) => i.id !== id);
+      renderCart();
+    }
+  });
+
+  // ── CHECKOUT via WhatsApp ──
+  document.getElementById("checkoutBtn").addEventListener("click", () => {
+    if (cart.length === 0) return;
+    const lines = cart
+      .map((i) => `• ${i.name} x${i.qty} — S/ ${(i.price * i.qty).toFixed(2)}`)
+      .join("\n");
+    const total = cart.reduce((s, i) => s + i.price * i.qty, 0).toFixed(2);
+    const msg = `¡Hola! Quiero hacer el siguiente pedido:\n\n${lines}\n\n*Total: S/ ${total}*\n\n¿Pueden confirmar disponibilidad y costo de delivery? 🍣`;
+    window.open(
+      `https://wa.me/51941442899?text=${encodeURIComponent(msg)}`,
+      "_blank",
+    );
+  });
+
+  // ── MENU CARD ADD BUTTONS ──
+  document.getElementById("menuGrid").addEventListener("click", (e) => {
+    const btn = e.target.closest(".add-btn");
+    if (!btn) return;
+    const card = btn.closest(".menu-card");
+    addToCart(
+      card.dataset.id,
+      card.dataset.name,
+      card.dataset.price,
+      card.dataset.img,
+    );
+    btn.textContent = "✓";
+    btn.classList.add("added");
+    setTimeout(() => {
+      btn.textContent = "+";
+      btn.classList.remove("added");
+    }, 1500);
+  });
+
+  // ── COMBO ADD BUTTONS ──
+  document.querySelectorAll(".combo-add").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const card = btn.closest(".combo-card");
+      addToCart(
+        card.dataset.id,
+        card.dataset.name,
+        card.dataset.price,
+        card.dataset.img,
+      );
+      toggleCart(true);
+    });
+  });
+
+  // ── TOAST ──
+  let toastTimer;
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove("show"), 2000);
+  }
+
+  // // ── REVEAL ON SCROLL ──
+  // const observer = new IntersectionObserver(
+  //   (entries) => {
+  //     entries.forEach((e) => {
+  //       if (e.isIntersecting) {
+  //         e.target.classList.add("visible");
+  //         observer.unobserve(e.target);
+  //       }
+  //     });
+  //   },
+  //   { threshold: 0.15 },
+  // );
+  // document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
+</script>

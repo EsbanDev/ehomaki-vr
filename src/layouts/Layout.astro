@@ -1,6 +1,9 @@
 ---
 import "@/styles/global.css";
 import "@fontsource-variable/onest/wght.css";
+import "@fontsource/bebas-neue";
+import "@fontsource/dm-sans";
+import "@fontsource/noto-serif-jp";
 ---
 
 <!doctype html>
@@ -8,10 +11,8 @@ import "@fontsource-variable/onest/wght.css";
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" href="/favicon.ico" />
+    <link rel="icon" type="image/svg+xml" href="/sushi-icon.svg" />
     <meta name="viewport" content="width=device-width" />
-    <meta name="generator" content={Astro.generator} />
     <title>Ehomaki Sushi Bar</title>
   </head>
   <body>
@@ -22,14 +23,34 @@ import "@fontsource-variable/onest/wght.css";
 </html>
 
 <style>
-  html,
-  body {
-    font-family: "Onest Variable", sans-serif;
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
     margin: 0;
-    width: 100%;
+    padding: 0;
+  }
+
+  html {
     scroll-behavior: smooth;
-    min-height: 100vh;
-    position: relative;
+  }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: "DM Sans", sans-serif;
+    font-weight: 300;
+    overflow-x: hidden;
+  }
+
+  /* ── NOISE OVERLAY ── */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.35;
   }
   @media (prefers-reduced-motion: reduce) {
     html {
