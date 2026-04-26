@@ -3,13 +3,28 @@
     <span class="logo-jp mb-2">鮨 ✦ Lima, Perú</span>
     <span class="logo-main">Ehomakis</span>
   </a>
-  <ul class="nav-links">
+  <button class="menu-toggle" id="menu-toggle" aria-label="Toggle menu">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+  <ul class="nav-links" id="nav-links">
     <li><a href="#menu">Menú</a></li>
     <li><a href="#combos">Combos</a></li>
     <li><a href="#info">Nosotros</a></li>
     <li><a href="#contacto">Contacto</a></li>
   </ul>
 </nav>
+
+<script>
+  const menuToggle = document.getElementById('menu-toggle');
+  const navLinks = document.getElementById('nav-links');
+  
+  menuToggle?.addEventListener('click', () => {
+    navLinks?.classList.toggle('active');
+    menuToggle?.classList.toggle('active');
+  });
+</script>
 
 <style>
   nav {
@@ -66,5 +81,91 @@
   }
   .nav-links a:hover {
     color: var(--gold);
+  }
+
+  .menu-toggle {
+    display: none;
+    flex-direction: column;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    z-index: 101;
+  }
+
+  .menu-toggle span {
+    width: 25px;
+    height: 2px;
+    background-color: var(--white);
+    margin: 3px 0;
+    transition: 0.3s;
+    transform-origin: center;
+  }
+
+  .menu-toggle.active span:nth-child(1) {
+    transform: rotate(45deg) translate(6px, 6px);
+  }
+
+  .menu-toggle.active span:nth-child(2) {
+    opacity: 0;
+  }
+
+  .menu-toggle.active span:nth-child(3) {
+    transform: rotate(-45deg) translate(6px, -6px);
+  }
+
+  @media (max-width: 768px) {
+    nav {
+      padding: 1.25rem 2rem;
+    }
+
+    .menu-toggle {
+      display: flex;
+    }
+
+    .nav-links {
+      position: fixed;
+      top: 0;
+      right: -100%;
+      width: 80%;
+      max-width: 300px;
+      height: 100vh;
+      background: rgba(10, 8, 5, 0.98);
+      backdrop-filter: blur(10px);
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 6rem 2rem 2rem;
+      gap: 2rem;
+      transition: right 0.3s ease;
+      border-left: 1px solid rgba(201, 151, 58, 0.12);
+    }
+
+    .nav-links.active {
+      right: 0;
+    }
+
+    .nav-links a {
+      font-size: 1rem;
+      color: var(--white);
+    }
+
+    .nav-links a:hover {
+      color: var(--gold);
+      transform: translateX(5px);
+    }
+  }
+
+  @media (max-width: 480px) {
+    nav {
+      padding: 1rem 1.5rem;
+    }
+
+    .nav-logo .logo-main {
+      font-size: 1.5rem;
+    }
+
+    .nav-links {
+      width: 90%;
+    }
   }
 </style>
