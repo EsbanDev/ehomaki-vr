@@ -1,0 +1,70 @@
+<nav>
+  <a href="#" class="nav-logo">
+    <span class="logo-jp mb-2">鮨 ✦ Lima, Perú</span>
+    <span class="logo-main">Ehomakis</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#menu">Menú</a></li>
+    <li><a href="#combos">Combos</a></li>
+    <li><a href="#info">Nosotros</a></li>
+    <li><a href="#contacto">Contacto</a></li>
+  </ul>
+</nav>
+
+<style>
+  nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 4rem;
+    background: linear-gradient(
+      to bottom,
+      rgba(10, 8, 5, 0.95) 0%,
+      transparent 100%
+    );
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(201, 151, 58, 0.12);
+  }
+
+  .nav-logo {
+    display: flex;
+    flex-direction: column;
+    line-height: 1;
+    text-decoration: none;
+  }
+  .nav-logo .logo-jp {
+    font-family: "Noto Serif JP", serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.4em;
+    color: var(--gold);
+    text-transform: uppercase;
+  }
+  .nav-logo .logo-main {
+    font-family: "Bebas Neue", sans-serif;
+    font-size: 1.8rem;
+    letter-spacing: 0.08em;
+    color: var(--white);
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 2.5rem;
+    list-style: none;
+  }
+  .nav-links a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.8rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover {
+    color: var(--gold);
+  }
+</style>

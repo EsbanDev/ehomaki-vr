@@ -1,0 +1,34 @@
+---
+import SocialPill from "./cards/SocialPill.astro";
+import FacebookIcon from "../assets/facebook.svg";
+import TiktokIcon from "../assets/tiktok.svg";
+import InstagramIcon from "../assets/instagram.svg";
+---
+
+<footer class="footer-bottom flex flex-col md:flex-row items-center justify-between gap-6">
+  <p>© 2026 Ehomakis — Todos los derechos reservados.</p>
+  <div class="flex gap-4">
+    <SocialPill href="https://www.tiktok.com/@ehomakis_lima" name="TikTok">
+      <TiktokIcon class="size-4"/>
+    </SocialPill>
+    <SocialPill href="https://www.instagram.com/ehomakis_lima" name="Instagram">
+      <InstagramIcon class="size-4"/>
+    </SocialPill>
+    <SocialPill href="https://www.facebook.com/ehomakis" name="Facebook">
+      <FacebookIcon class="size-4"/>
+    </SocialPill>
+  </div>
+</footer>
+
+<style>
+  .footer-bottom {
+    padding: 1.5rem 4rem;
+    border-top: 1px solid var(--border);
+  }
+  .footer-bottom p {
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+  
+</style>
