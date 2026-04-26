@@ -1,0 +1,103 @@
+---
+interface Props {
+  id: string;
+  name: string;
+  shortName: string;
+  price: number;
+  pieces: string;
+  description: string;
+}
+const { id, name, shortName, price, pieces, description } = Astro.props;
+---
+
+<div class="combo-card flex flex-col justify-between" data-id={id} data-name={name} data-price={price}>
+  <div>
+    <div class="combo-pieces">{pieces}</div>
+    <div class="combo-name">{shortName}</div>
+    <div class="combo-desc">
+      {description}
+    </div>
+  </div>
+  <div>
+    <div class="combo-price">S/ {price}</div>
+    <button class="combo-add">Agregar al carrito</button>
+  </div>
+</div>
+
+<style>
+  .combo-card {
+    background: var(--dark);
+    padding: 2rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: background 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .combo-card:hover {
+    background: var(--card);
+  }
+  .combo-card::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(
+      to right,
+      transparent,
+      var(--gold),
+      transparent
+    );
+    transform: scaleX(0);
+    transition: transform 0.3s;
+  }
+  .combo-card:hover::after {
+    transform: scaleX(1);
+  }
+
+  .combo-pieces {
+    font-family: "Bebas Neue", sans-serif;
+    font-size: 4rem;
+    line-height: 1;
+    color: rgba(201, 151, 58, 0.2);
+    margin-bottom: 0.5rem;
+  }
+  .combo-name {
+    font-family: "Noto Serif JP", serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 0.5rem;
+  }
+  .combo-desc {
+    font-size: 0.7rem;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 1.25rem;
+  }
+  .combo-price {
+    font-family: "Bebas Neue", sans-serif;
+    font-size: 2rem;
+    color: var(--gold);
+    margin-bottom: 1rem;
+  }
+  .combo-add {
+    background: none;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    padding: 0.5rem 1.5rem;
+    font-family: "DM Sans", sans-serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+  }
+  .combo-add:hover {
+    background: var(--gold);
+    color: var(--black);
+  }
+</style>

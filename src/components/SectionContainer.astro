@@ -1,0 +1,48 @@
+---
+interface Props {
+  title: string;
+  subtitle: string;
+  name?: string 
+}
+
+const { title, subtitle, name } = Astro.props;
+---
+
+<section class="py-12 px-8 max-w-340 mx-auto reveal" id={name || ""}>
+  <div class="section-eyebrow reveal">
+    <span class="bar"></span>
+    <span>{ subtitle }</span>
+  </div>
+  <h2 class="menu-title reveal" style="margin-bottom:3rem">
+    {title}
+  </h2>
+  <slot/>
+</section>
+
+<style>
+  /* ── SECTION LABELS ── */
+  .section-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+  .section-eyebrow .bar {
+    width: 32px;
+    height: 2px;
+    background: var(--gold);
+  }
+  .section-eyebrow span {
+    font-size: 0.65rem;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .menu-title {
+    font-family: "Bebas Neue", sans-serif;
+    font-size: clamp(2.5rem, 5vw, 5rem);
+    line-height: 1;
+    letter-spacing: 0.03em;
+  }
+</style>
