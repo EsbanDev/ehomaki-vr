@@ -4,22 +4,21 @@ import CartIcon from "../assets/icons/cart.svg";
 
 <button class="cart-btn" id="openCart">
   <div class="relative">
-    <CartIcon class="size-8" />
+    <CartIcon class="size-7 md:size-8" />
   </div>
   <span class="cart-count" id="cartCount">0</span>
 </button>
 <style>
   .cart-btn {
     position: fixed;
-    bottom: 1rem;
+    bottom: 3.5rem;
     right: 1rem;
     background: none;
     border: 1px solid var(--gold);
     border-radius: 100%;
     color: var(--gold);
-    padding: 1rem;
     font-family: "DM Sans", sans-serif;
-    font-size: 0.75rem;
+    padding: 0.65rem;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     cursor: pointer;
@@ -27,6 +26,9 @@ import CartIcon from "../assets/icons/cart.svg";
     display: flex;
     align-items: center;
     z-index: 4;
+    @media (min-width: 768px) {
+      padding: 0.75rem;
+    }
   }
   .cart-btn:hover {
     background: var(--gold);
