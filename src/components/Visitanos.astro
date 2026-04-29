@@ -1,0 +1,175 @@
+---
+import SectionContainer from "./SectionContainer.astro";
+import LeafletMap from "./cards/LeafletMap.astro";
+import { ehomakisGeoJSON } from "@/const/geoJSONData";
+import CarIcon from "@/assets/icons/car.svg"
+import BusIcon from "@/assets/icons/bus.svg"
+---
+
+<SectionContainer
+  title="Visítanos"
+  subtitle="Nuestra ubicación"
+  name="visitanos"
+>
+  <!-- <h2
+    class="mx-auto flex flex-row items-center justify-center gap-x-4 py-4 text-left text-lg font-semibold tracking-tight text-balance text-white md:gap-x-8 md:py-6 md:text-2xl lg:py-8 lg:pb-4 lg:text-3xl xl:text-4xl"
+  >
+    ¡Nos vemos aquí!
+  </h2>
+  <h3
+    class="flex flex-col items-center justify-center gap-1.5 text-white md:flex-row"
+  >
+    Lola Lolita Land se celebra en <a
+      href="https://maps.app.goo.gl/QEWvh6e1cAZoqhCS7"
+      target="_blank"
+      rel="noopener"
+      class="hover:text-primary animate-ease-in-out inline-block max-w-full rounded-lg bg-pink-200 px-2 py-1 text-center wrap-break-word text-pink-950 transition hover:bg-white"
+      >Aquopolis Villanueva de la Cañada</a
+    >
+  </h3> -->
+
+  <div class="m-auto mt-4 flex max-w-328.75 flex-row flex-wrap gap-8 p-4">
+    <div
+      class="relative h-157.5 min-w-75 flex-1 overflow-hidden rounded-[2rem] bg-black"
+    >
+      <LeafletMap
+        latitude={-12.20456994618187}
+        longitude={-77.01358787855044}
+        zoom={16}
+        tileLayer="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+        attribution=`<a class="mr-5" href="http://www.openstreetmap.org/">OpenStreetMap</a>`
+        geoJSON={[{ data: ehomakisGeoJSON, color: "green" }]}
+      />
+    </div>
+    <div
+      class="flex w-full shrink-0 flex-col gap-y-8 overflow-hidden md:w-93.75 lg:w-137.5"
+    >
+      {/* TRANSPORTE PÚBLICO */}
+      <div class="flex flex-col gap-3 px-4">
+        <h3
+          class="mb-1 flex w-fit items-center gap-x-2 rounded-[2rem] bg-white px-4 py-2 text-base font-bold text-black"
+        >
+          <BusIcon class="size-4" />
+          Transporte público
+        </h3>
+
+        <p class="text-white/80 leading-relaxed">
+          Toma buses o combis por la <span class="text-white font-medium"
+            >Av. Alameda Los Cedros</span
+          >,
+          <span class="text-white font-medium">Av. Huaylas</span> o
+          <span class="text-white font-medium">Av. Prolongación Huaylas</span>.
+          Baja en Cedros de Villa y camina unas cuadras hasta el local.
+        </p>
+
+        <div
+          class="rounded-xl border border-white/10 bg-white/5 px-4 py-3 flex flex-col gap-1"
+        >
+          <span
+            class="text-xs font-semibold tracking-widest text-white/40 uppercase"
+            >Desde otra zona de Lima</span
+          >
+          <p class="text-white/80 leading-relaxed text-sm">
+            Metropolitano hasta <span class="text-white font-medium"
+              >estación Matellini</span
+            >, luego taxi o combi hacia Cedros de Villa. También puedes usar
+            <span class="text-white font-medium">Uber, Didi o InDriver</span> directo
+            al local.
+          </p>
+        </div>
+      </div>
+
+      {/* COCHE PROPIO */}
+      <div class="flex flex-col gap-3 px-4">
+        <h3
+          class="mb-1 flex w-fit items-center gap-x-2 rounded-[2rem] bg-white px-4 py-2 text-base font-bold text-black"
+        >
+          <CarIcon class="size-4" />
+          En coche propio
+        </h3>
+
+        <div class="flex flex-col gap-2">
+          <div
+            class="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3"
+          >
+            <span
+              class="mt-0.5 text-xs font-bold tracking-widest text-white/30 uppercase w-6 shrink-0"
+              >01</span
+            >
+            <div>
+              <span class="text-white font-medium text-sm">Av. Huaylas</span>
+              <p class="text-white/60 text-sm">
+                Vía principal para entrar a Chorrillos desde el norte.
+              </p>
+            </div>
+          </div>
+          <div
+            class="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3"
+          >
+            <span
+              class="mt-0.5 text-xs font-bold tracking-widest text-white/30 uppercase w-6 shrink-0"
+              >02</span
+            >
+            <div>
+              <span class="text-white font-medium text-sm"
+                >Alameda Los Cedros</span
+              >
+              <p class="text-white/60 text-sm">
+                Acceso directo al local, el número es 366.
+              </p>
+            </div>
+          </div>
+          <div
+            class="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3"
+          >
+            <span
+              class="mt-0.5 text-xs font-bold tracking-widest text-white/30 uppercase w-6 shrink-0"
+              >03</span
+            >
+            <div>
+              <span class="text-white font-medium text-sm"
+                >Prolongación Huaylas</span
+              >
+              <p class="text-white/60 text-sm">
+                Conexión desde Villa El Salvador y el sur de Lima.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <a
+          href="https://maps.app.goo.gl/QEWvh6e1cAZoqhCS7"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="mt-1 flex items-center justify-between gap-2 rounded-xl border border-white/20 bg-white/5 px-4 py-3 transition hover:bg-white/10 group"
+        >
+          <div class="flex flex-col gap-0.5">
+            <span
+              class="text-xs font-semibold tracking-widest text-white/40 uppercase"
+              >Abrir en Google Maps / Waze</span
+            >
+            <span class="text-white/80 text-sm"
+              >"Ehomakis Sushi Bar — Cedros de Villa"</span
+            >
+          </div>
+          <svg
+            class="shrink-0 text-white/30 transition group-hover:text-white/70 group-hover:translate-x-1"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+          >
+            <path d="M5 12h14M13 6l6 6-6 6"></path>
+          </svg>
+        </a>
+
+        <p class="text-xs text-white/30 px-1">
+          Hay opciones de estacionamiento en la zona — se recomienda revisar el tráfico en
+          horas punta.
+        </p>
+      </div>
+    </div>
+  </div>
+</SectionContainer>
