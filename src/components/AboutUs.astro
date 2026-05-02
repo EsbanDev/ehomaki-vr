@@ -1,37 +1,108 @@
 ---
-import ClockIcon from "../assets/icons/clock.svg"
-import LocationIcon from "../assets/icons/location.svg"
-import JapaneseCastle from "../assets/icons/japanese-castle.svg"
+import JapaneseCastle from "../assets/icons/japanese-castle.svg";
+import FishIcon from "../assets/icons/fish.svg";
+import StarIcon from "../assets/icons/star.svg";
+import ChevronRight from "../assets/icons/chevron-right.svg";
+import ChevronLeft from "../assets/icons/chevron-left.svg";
+
+const STATCARDS = [
+  {
+    icon: JapaneseCastle,
+    label: "Nuestra filosofía",
+    value:
+      "Fusión honesta entre la tradición japonesa y los sabores que crecimos comiendo en Lima. Cada roll cuenta una historia.",
+  },
+  {
+    icon: FishIcon,
+    label: "Frescura garantizada",
+    value:
+      "Trabajamos con proveedores seleccionados. El salmón, la trucha y los mariscos llegan diariamente para que cada pieza sea perfecta.",
+  },
+  {
+    icon: StarIcon,
+    label: "Experiencia única",
+    value:
+      "Cada roll es una obra de arte culinaria. Desde 2018, llevamos la cocina Nikkei a mesas que nunca habían probado el encuentro entre el ají amarillo y el salmón.",
+  },
+];
 ---
 
-<div id="info" class= "info-strip bg-dark border-t border-b border-gray-800 p-8 grid grid-cols-1 md:grid-cols-3">
-  <div class="info-block border-b md:border-b-0 md:border-r border-gray-800 reveal">
-    <ClockIcon class="mb-4 size-8"/>
-    <div class="info-label">Horarios</div>
-    <div class="info-value">
-      Lunes – Sábado<br />12:00 PM – 10:00 PM<br /><br />
-      Domingos<br />12:00 PM – 06:00 PM
-    </div>
+<div
+  id="info"
+  class="info-strip bg-dark border-t border-b border-gray-800 py-8"
+>
+  <!-- DESKTOP: grid estático -->
+  <div class="hidden md:grid md:grid-cols-3 divide-x divide-gray-800">
+    {
+      STATCARDS.map((card) => (
+        <div class="info-block p-10 reveal flex flex-col items-center text-center gap-4">
+          <card.icon class="size-16" />
+
+          <div class="label-wrap">
+            <div class="label-bg" />
+            <div class="label-text">{card.label}</div>
+          </div>
+
+          <div class="divider-dot" />
+
+          <div class="info-value font-serif text-sm leading-relaxed">
+            {card.value}
+          </div>
+        </div>
+      ))
+    }
   </div>
-  <div class="info-block border-b md:border-b-0 md:border-r border-gray-800 reveal">
-    <LocationIcon class="mb-4 size-8"/>
-    <div class="info-label">Ubicación</div>
-    <div class="info-value">
-      Av. Alameda Los Cedros 366<br />Chorrillos, Lima<br /><br />
-      <a
-        href="https://wa.me/51941442899"
-        target="_blank"
-        style="color:var(--gold);text-decoration:none;font-size:0.85rem;"
-        >+51 941 442 899</a
+
+  <!-- MOBILE: slider -->
+  <div class="md:hidden relative overflow-hidden">
+    <div
+      id="info-slider"
+      class="flex transition-transform duration-500 ease-in-out"
+    >
+      {
+        STATCARDS.map((card) => (
+          <div class="info-slide min-w-full p-8 flex flex-col gap-4">
+            <card.icon class="size-8 text-(--gold)" />
+            <div class="text-[0.65rem] tracking-[0.3em] uppercase text-(--gold)">
+              {card.label}
+            </div>
+            <div class="font-serif text-base text-white leading-relaxed">
+              {card.value}
+            </div>
+          </div>
+        ))
+      }
+    </div>
+
+    <!-- Dots + flechas -->
+    <div class="flex items-center justify-between px-8 pb-8 pt-2">
+      <button
+        id="info-prev"
+        aria-label="Anterior"
+        class="text-white/50 hover:text-(--gold) transition-colors"
       >
-    </div>
-  </div>
-  <div class="info-block reveal">
-    <JapaneseCastle class="mb-4 size-8"/>
-    <div class="info-label">Nuestra filosofía</div>
-    <div class="info-value">
-      Fusión honesta entre la tradición japonesa y los sabores que crecimos
-      comiendo en Lima. Cada roll cuenta una historia.
+        <ChevronLeft class="size-5" />
+      </button>
+
+      <div class="flex gap-2" id="info-dots">
+        <button
+          data-dot="0"
+          class="info-dot w-6 h-0.5 bg-(--gold) transition-all"></button>
+        <button
+          data-dot="1"
+          class="info-dot w-2 h-0.5 bg-white/20 transition-all"></button>
+        <button
+          data-dot="2"
+          class="info-dot w-2 h-0.5 bg-white/20 transition-all"></button>
+      </div>
+
+      <button
+        id="info-next"
+        aria-label="Siguiente"
+        class="text-white/50 hover:text-(--gold) transition-colors"
+      >
+        <ChevronRight class="size-5" />
+      </button>
     </div>
   </div>
 </div>
@@ -41,7 +112,42 @@ import JapaneseCastle from "../assets/icons/japanese-castle.svg"
     background: var(--dark);
   }
   .info-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
     padding: 2rem;
+  }
+
+  .label-wrap {
+    position: relative;
+    display: inline-block;
+  }
+  .label-bg {
+    position: absolute;
+    inset: -4px -10px;
+    background: var(--gold);
+    transform: skewX(-4deg) rotate(-1deg);
+    border-radius: 2px;
+  }
+  .label-text {
+    position: relative;
+    z-index: 1;
+    font-family: 'Onest', sans-serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--black);
+    white-space: nowrap;
+    padding: 0.1rem 0.2rem;
+  }
+  .divider-dot {
+    width: 4px;
+    height: 4px;
+    background: var(--gold);
+    border-radius: 50%;
+    opacity: 0.7;
   }
   .info-block:last-child {
     border-right: none;
@@ -60,4 +166,53 @@ import JapaneseCastle from "../assets/icons/japanese-castle.svg"
     color: var(--white);
     line-height: 1.7;
   }
+
+  .info-slide {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 2rem;
+  }
 </style>
+
+<script>
+  const slider = document.getElementById("info-slider");
+  const dots = document.querySelectorAll<HTMLElement>(".info-dot");
+  const prev = document.getElementById("info-prev");
+  const next = document.getElementById("info-next");
+
+  let current = 0;
+  const total = 3;
+
+  function goTo(index: number) {
+    current = (index + total) % total;
+    slider!.style.transform = `translateX(-${current * 100}%)`;
+
+    dots.forEach((dot, i) => {
+      const isActive = i === current;
+      dot.style.width = isActive ? "1.5rem" : "0.5rem";
+      dot.style.background = isActive ? "var(--gold)" : "rgba(255,255,255,0.2)";
+    });
+  }
+
+  prev?.addEventListener("click", () => goTo(current - 1));
+  next?.addEventListener("click", () => goTo(current + 1));
+  dots.forEach((dot) => {
+    dot.addEventListener("click", () => goTo(Number(dot.dataset.dot)));
+  });
+
+  // Swipe touch
+  let startX = 0;
+  slider?.addEventListener(
+    "touchstart",
+    (e) => {
+      startX = e.touches[0].clientX;
+    },
+    { passive: true },
+  );
+  slider?.addEventListener("touchend", (e) => {
+    const diff = startX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 40) goTo(diff > 0 ? current + 1 : current - 1);
+  });
+</script>

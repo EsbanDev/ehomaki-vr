@@ -2,8 +2,10 @@
 import SectionContainer from "./SectionContainer.astro";
 import LeafletMap from "./cards/LeafletMap.astro";
 import { ehomakisGeoJSON } from "@/const/geoJSONData";
-import CarIcon from "@/assets/icons/car.svg"
-import BusIcon from "@/assets/icons/bus.svg"
+import CarIcon from "@/assets/icons/car.svg";
+import BusIcon from "@/assets/icons/bus.svg";
+import LocationIcon from "@/assets/icons/map-marker.svg";
+import PhoneIcon from "@/assets/icons/phone-call.svg";
 ---
 
 <SectionContainer
@@ -27,10 +29,33 @@ import BusIcon from "@/assets/icons/bus.svg"
       >Aquopolis Villanueva de la Cañada</a
     >
   </h3> -->
+  <div class="flex flex-col md:flex-row justify-center items-center md:justify-between gap-3">
+    <div class="flex flex-col items-center md:items-start gap-2">
+      <span class="flex gap-1.5 items-center"
+        ><LocationIcon class="size-6" />Av. Alameda Los Cedros 366, Chorrillos</span
+      >
+      <span class="flex gap-1.5 items-center"
+        ><PhoneIcon class="size-6" />
+        <a
+        class="font-medium"
+          href="https://wa.me/51941442899"
+          target="_blank"
+          >941 442 899</a
+        >
+      </span>
+    </div>
+    <div class="text-center md:text-right">
+      <h2 class="font-medium tracking-wide text-(--gold)">Horarios de Atención:</h2>
+      <ul>
+        <li>Lunes – Sábado 12:00pm – 10:00pm</li>
+        <li>Domingos 12:00pm – 06:00pm</li>
+      </ul>
+    </div>
+  </div>
 
   <div class="m-auto mt-4 flex max-w-328.75 flex-row flex-wrap gap-8 p-4">
     <div
-      class="relative h-157.5 min-w-75 flex-1 overflow-hidden rounded-[2rem] bg-black"
+      class="relative h-70 md:h-157.5 min-w-75 flex-1 overflow-hidden rounded-[2rem] bg-black"
     >
       <LeafletMap
         latitude={-12.20456994618187}
@@ -138,7 +163,7 @@ import BusIcon from "@/assets/icons/bus.svg"
         </div>
 
         <a
-          href="https://maps.app.goo.gl/QEWvh6e1cAZoqhCS7"
+          href="https://maps.app.goo.gl/Y72cvyUB26ebGzMH6"
           target="_blank"
           rel="noopener noreferrer"
           class="mt-1 flex items-center justify-between gap-2 rounded-xl border border-white/20 bg-white/5 px-4 py-3 transition hover:bg-white/10 group"
@@ -166,8 +191,8 @@ import BusIcon from "@/assets/icons/bus.svg"
         </a>
 
         <p class="text-xs text-white/30 px-1">
-          Hay opciones de estacionamiento en la zona — se recomienda revisar el tráfico en
-          horas punta.
+          Hay opciones de estacionamiento en la zona — se recomienda revisar el
+          tráfico en horas punta.
         </p>
       </div>
     </div>
