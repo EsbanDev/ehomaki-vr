@@ -1,4 +1,20 @@
-<section class="hero min-h-dvh relative overflow-hidden grid grid-cols-1 md:grid-cols-2">
+---
+import MouseIcon from "@/assets/icons/mouse.svg";
+import ArrowDownIcon from "@/assets/icons/arrowdown.svg";
+---
+
+<section
+  class="hero min-h-dvh relative overflow-hidden grid grid-cols-1 md:grid-cols-2"
+>
+  <div
+    class="absolute bottom-0 md:bottom-[5%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 flex flex-col items-center gap-1.5 animate-fade-in-up delay-700"
+  >
+    <MouseIcon class="size-8" />
+    <p class="font-semibold text-base uppercase text-(--gold)">
+      Nuestras Promociones
+    </p>
+    <ArrowDownIcon class="size-8 animate-bounce" />
+  </div>
   <div class="hero-left">
     <div class="hero-tag animate-fade-in-right delay-150">
       <span class="line"></span>
@@ -14,13 +30,21 @@
       con huancaína, lomo flameado y ají amarillo — una experiencia que solo
       existe aquí.
     </p>
-    <div class="hero-ctas mb-20">
-      <a href="#menu" class="btn-primary animate-fade-in-right delay-700">Ver Menú</a>
-      <a href="https://wa.me/51941442899" class="btn-ghost animate-fade-in-left delay-700" target="_blank">
+    <div class="hero-ctas mb-10 md:mb-20">
+      <a href="#menu" class="btn-primary animate-fade-in-right delay-700"
+        >Ver Menú</a
+      >
+      <a
+        href="https://wa.me/51941442899"
+        class="btn-ghost animate-fade-in-left delay-700"
+        target="_blank"
+      >
         Pedir por WhatsApp <span class="arrow">→</span>
       </a>
     </div>
-    <div class="flex flex-row xl:flex-col gap-8 absolute bottom-12 left-16 xl:top-1/2 xl:-translate-y-1/2 xl:left-96 xl:translate-x-2/3">
+    <div
+      class="hidden md:flex flex-col justify-center xl:justify-start gap-8 absolute bottom-12 top-1/2 -translate-y-1/2 left-96 translate-x-2/3"
+    >
       <div class="stat-item animate-fade-in-up delay-100">
         <div class="stat-num">30+</div>
         <div class="stat-label">Variedades</div>
@@ -35,18 +59,17 @@
       </div>
     </div>
   </div>
-  <div class="hero-right hidden md:block">
+  <div class="hero-right hidden lg:block">
     <img
       class="hero-img"
       src="/night-wallpaper.webp"
       alt="Sushi platter Ehomakis"
     />
   </div>
-  <div class="hero-kanji hidden md:block">寿司</div>
+  <div class="hero-kanji animate-blink delay-500 hidden md:block">寿司</div>
 </section>
 
 <style>
-
   .hero-left {
     display: flex;
     flex-direction: column;

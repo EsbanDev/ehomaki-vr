@@ -2,7 +2,7 @@
 import CartIcon from "../assets/icons/cart.svg";
 ---
 
-<button class="cart-btn" id="openCart">
+<button class="cart-btn backdrop-blur-md" id="openCart">
   <div class="relative">
     <CartIcon class="size-7 md:size-8" />
   </div>
@@ -13,7 +13,6 @@ import CartIcon from "../assets/icons/cart.svg";
     position: fixed;
     bottom: 3.5rem;
     right: 1rem;
-    background: none;
     border: 1px solid var(--gold);
     border-radius: 100%;
     color: var(--gold);
@@ -25,7 +24,7 @@ import CartIcon from "../assets/icons/cart.svg";
     transition: all 0.2s;
     display: flex;
     align-items: center;
-    z-index: 4;
+    z-index: 20;
     @media (min-width: 768px) {
       padding: 0.75rem;
     }

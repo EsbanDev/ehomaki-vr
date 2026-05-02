@@ -11,18 +11,17 @@
   <ul class="nav-links" id="nav-links">
     <li><a href="#menu">Menú</a></li>
     <li><a href="#combos">Combos</a></li>
-    <li><a href="#info">Nosotros</a></li>
-    <li><a href="#contacto">Contacto</a></li>
+    <li><a href="#visitanos">Visítanos</a></li>
   </ul>
 </nav>
 
 <script>
-  const menuToggle = document.getElementById('menu-toggle');
-  const navLinks = document.getElementById('nav-links');
-  
-  menuToggle?.addEventListener('click', () => {
-    navLinks?.classList.toggle('active');
-    menuToggle?.classList.toggle('active');
+  const menuToggle = document.getElementById("menu-toggle");
+  const navLinks = document.getElementById("nav-links");
+
+  menuToggle?.addEventListener("click", () => {
+    navLinks?.classList.toggle("active");
+    menuToggle?.classList.toggle("active");
   });
 </script>
 
@@ -37,13 +36,29 @@
     align-items: center;
     justify-content: space-between;
     padding: 1.25rem 4rem;
-    background: linear-gradient(
+    /* background: linear-gradient(
       to bottom,
       rgba(10, 8, 5, 0.95) 0%,
       transparent 100%
     );
-    backdrop-filter: blur(8px);
-    border-bottom: 1px solid rgba(201, 151, 58, 0.12);
+    backdrop-filter: blur(8px); */
+    animation: nav-shadown 1s linear both;
+    animation-timeline: scroll();
+    animation-range: 0 100px;
+  }
+
+  @keyframes nav-shadown {
+    0% {
+      background-color: transparent;
+      padding: 1.5rem 3rem;
+    }
+    100% {
+      background: rgba(10, 8, 5, 0.68);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(10px);
+      padding: 1rem 3rem;
+      border-bottom: 1px solid rgba(201, 151, 58, 0.12);
+    }
   }
 
   .nav-logo {
@@ -72,12 +87,13 @@
     list-style: none;
   }
   .nav-links a {
-    color: var(--muted);
+    color: var(--white);
     text-decoration: none;
     font-size: 0.8rem;
     letter-spacing: 0.15em;
     text-transform: uppercase;
     transition: color 0.2s;
+    font-weight: 700;
   }
   .nav-links a:hover {
     color: var(--gold);
