@@ -16,17 +16,24 @@ import { AdMarquee } from "../components/AdMarquee";
 
 <Header />
 <Hero />
-<AdMarquee client:load />
-<Menu />
-<Combos />
-<AboutUs />
-<CommentsMarquee client:load />
-<Visitanos />
-<Galeria />
+  <AdMarquee client:idle />
+  <Menu />
+  <Combos />
+  <AboutUs />
+  <CommentsMarquee client:idle />
+  <Visitanos />
+  <Galeria />
 <Footer />
 
 <!-- TOAST -->
-<div class="toast" id="toast"></div>
+<div
+  class="toast"
+  id="toast"
+  role="status"
+  aria-live="polite"
+  aria-atomic="true"
+>
+</div>
 
 <style>
   /* ── TOAST ── */
@@ -64,152 +71,220 @@ import { AdMarquee } from "../components/AdMarquee";
 </style>
 
 <script>
-  // ── CART STATE ──
+  // @ts-nocheck
+  /**
+   * @typedef {{id:string,name:string,price:number,img:string,qty:number}} CartItem
+   */
+
+  /** @type {CartItem[]} */
   let cart = [];
 
-  const cartCount = document.getElementById("cartCount");
-  const cartItemsEl = document.getElementById("cartItems");
-  const cartEmpty = document.getElementById("cartEmpty");
-  const cartFooter = document.getElementById("cartFooter");
-  const cartSubtotal = document.getElementById("cartSubtotal");
-  const cartTotal = document.getElementById("cartTotal");
-  const toast = document.getElementById("toast");
+  const toast = /** @type {HTMLElement | null} */ (
+    document.getElementById("toast")
+  );
+  let toastTimer = /** @type {ReturnType<typeof setTimeout> | null} */ (null);
 
-  // ── ADD TO CART ──
-  function addToCart(id, name, price, img) {
-    const existing = cart.find((i) => i.id === id);
-    if (existing) {
-      existing.qty++;
-    } else {
-      cart.push({ id, name, price: parseFloat(price), img, qty: 1 });
-    }
-    renderCart();
-    showToast(`${name} agregado ✓`);
-  }
+  const showToast = (msg) => {
+    if (!toast) return;
+    toast.textContent = msg;
+    toast.classList.add("show");
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove("show"), 2000);
+  };
 
-  // ── RENDER CART ──
-  function renderCart() {
-    const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
-    cartCount.textContent = cart.reduce((s, i) => s + i.qty, 0);
+  const initCart = () => {
+    const cartCount = /** @type {HTMLElement | null} */ (
+      document.getElementById("cartCount")
+    );
+    const cartItemsEl = /** @type {HTMLElement | null} */ (
+      document.getElementById("cartItems")
+    );
+    const cartEmpty = /** @type {HTMLElement | null} */ (
+      document.getElementById("cartEmpty")
+    );
+    const cartFooter = /** @type {HTMLElement | null} */ (
+      document.getElementById("cartFooter")
+    );
+    const cartSubtotal = /** @type {HTMLElement | null} */ (
+      document.getElementById("cartSubtotal")
+    );
+    const cartTotal = /** @type {HTMLElement | null} */ (
+      document.getElementById("cartTotal")
+    );
 
-    if (cart.length === 0) {
-      cartEmpty.style.display = "block";
-      cartFooter.style.display = "none";
-      // Remove item elements
-      [...cartItemsEl.querySelectorAll(".cart-item")].forEach((el) =>
-        el.remove(),
-      );
+    if (
+      !cartCount ||
+      !cartItemsEl ||
+      !cartEmpty ||
+      !cartFooter ||
+      !cartSubtotal ||
+      !cartTotal
+    ) {
       return;
     }
 
-    cartEmpty.style.display = "none";
-    cartFooter.style.display = "block";
-    cartSubtotal.textContent = `S/ ${total.toFixed(2)}`;
-    cartTotal.textContent = `S/ ${total.toFixed(2)}`;
+    const renderCart = () => {
+      const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+      cartCount.textContent = String(
+        cart.reduce((sum, item) => sum + item.qty, 0),
+      );
 
-    // Re-render all items
-    [...cartItemsEl.querySelectorAll(".cart-item")].forEach((el) =>
-      el.remove(),
-    );
-    cart.forEach((item) => {
-      const el = document.createElement("div");
-      el.className = "cart-item";
-      el.dataset.id = item.id;
-      el.innerHTML = `
-          <img class="ci-img" src="${item.img}" alt="${item.name}" />
+      if (cart.length === 0) {
+        cartEmpty.style.display = "block";
+        cartFooter.style.display = "none";
+        Array.from(cartItemsEl.querySelectorAll(".cart-item")).forEach((el) =>
+          el.remove(),
+        );
+        return;
+      }
+
+      cartEmpty.style.display = "none";
+      cartFooter.style.display = "block";
+      cartSubtotal.textContent = `S/ ${total.toFixed(2)}`;
+      cartTotal.textContent = `S/ ${total.toFixed(2)}`;
+
+      Array.from(cartItemsEl.querySelectorAll(".cart-item")).forEach((el) =>
+        el.remove(),
+      );
+
+      cart.forEach((item) => {
+        const el = document.createElement("div");
+        el.className = "cart-item";
+        el.dataset.id = item.id;
+        el.innerHTML = `
+          <img class="ci-img" src="${item.img}" alt="${item.name}" width="100" height="80" />
           <div>
             <div class="ci-name">${item.name}</div>
             <div class="ci-price">S/ ${(item.price * item.qty).toFixed(2)}</div>
           </div>
           <div class="ci-controls">
             <div class="qty-controls">
-              <button class="qty-btn" data-action="dec" data-id="${item.id}">−</button>
+              <button type="button" class="qty-btn" data-action="dec" data-id="${item.id}">−</button>
               <span class="qty-num">${item.qty}</span>
-              <button class="qty-btn" data-action="inc" data-id="${item.id}">+</button>
+              <button type="button" class="qty-btn" data-action="inc" data-id="${item.id}">+</button>
             </div>
-            <button class="remove-btn" data-id="${item.id}">Eliminar</button>
+            <button type="button" class="remove-btn" data-id="${item.id}">Eliminar</button>
           </div>
         `;
-      cartItemsEl.appendChild(el);
-    });
-  }
+        cartItemsEl.appendChild(el);
+      });
+    };
 
-  // ── QTY + REMOVE (event delegation) ──
-  cartItemsEl.addEventListener("click", (e) => {
-    const id = e.target.dataset.id;
-    if (!id) return;
-
-    if (e.target.dataset.action === "inc") {
-      cart.find((i) => i.id === id).qty++;
-      renderCart();
-    } else if (e.target.dataset.action === "dec") {
-      const item = cart.find((i) => i.id === id);
-      if (item.qty > 1) {
-        item.qty--;
+    /**
+     * @param {string} id
+     * @param {string} name
+     * @param {string} price
+     * @param {string} img
+     */
+    const addToCart = (id, name, price, img) => {
+      const existing = cart.find((item) => item.id === id);
+      if (existing) {
+        existing.qty++;
       } else {
-        cart = cart.filter((i) => i.id !== id);
+        cart.push({ id, name, price: parseFloat(price), img, qty: 1 });
       }
       renderCart();
-    } else if (e.target.classList.contains("remove-btn")) {
-      cart = cart.filter((i) => i.id !== id);
-      renderCart();
-    }
-  });
+      showToast(`${name} agregado ✓`);
+    };
 
-  // ── CHECKOUT via WhatsApp ──
-  document.getElementById("checkoutBtn").addEventListener("click", () => {
-    if (cart.length === 0) return;
-    const lines = cart
-      .map((i) => `• ${i.name} x${i.qty} — S/ ${(i.price * i.qty).toFixed(2)}`)
-      .join("\n");
-    const total = cart.reduce((s, i) => s + i.price * i.qty, 0).toFixed(2);
-    const msg = `¡Hola! Quiero hacer el siguiente pedido:\n\n${lines}\n\n*Total: S/ ${total}*\n\n¿Pueden confirmar disponibilidad y costo de delivery? 🍣`;
-    window.open(
-      `https://wa.me/51941442899?text=${encodeURIComponent(msg)}`,
-      "_blank",
-    );
-  });
+    cartItemsEl.addEventListener("click", (event) => {
+      if (!(event.target instanceof HTMLElement)) return;
+      const id = event.target.dataset.id;
+      if (!id) return;
 
-  // ── MENU CARD ADD BUTTONS ──
-  document.getElementById("menuGrid").addEventListener("click", (e) => {
-    const btn = e.target.closest(".add-btn");
-    if (!btn) return;
-    const card = btn.closest(".menu-card");
-    addToCart(
-      card.dataset.id,
-      card.dataset.name,
-      card.dataset.price,
-      card.dataset.img,
-    );
-    btn.textContent = "✓";
-    btn.classList.add("added");
-    setTimeout(() => {
-      btn.textContent = "+";
-      btn.classList.remove("added");
-    }, 1500);
-  });
-
-  // ── COMBO ADD BUTTONS ──
-  document.querySelectorAll(".combo-add").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const card = btn.closest(".combo-card");
-      addToCart(
-        card.dataset.id,
-        card.dataset.name,
-        card.dataset.price,
-        card.dataset.img,
-      );
-      toggleCart(true);
+      if (event.target.dataset.action === "inc") {
+        const item = cart.find((cartItem) => cartItem.id === id);
+        if (item) {
+          item.qty++;
+          renderCart();
+        }
+      } else if (event.target.dataset.action === "dec") {
+        const item = cart.find((cartItem) => cartItem.id === id);
+        if (item) {
+          if (item.qty > 1) {
+            item.qty--;
+          } else {
+            cart = cart.filter((cartItem) => cartItem.id !== id);
+          }
+          renderCart();
+        }
+      } else if (event.target.classList.contains("remove-btn")) {
+        cart = cart.filter((cartItem) => cartItem.id !== id);
+        renderCart();
+      }
     });
-  });
 
-  // ── TOAST ──
-  let toastTimer;
-  function showToast(msg) {
-    toast.textContent = msg;
-    toast.classList.add("show");
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toast.classList.remove("show"), 2000);
+    const checkoutBtn = /** @type {HTMLButtonElement | null} */ (
+      document.getElementById("checkoutBtn")
+    );
+    checkoutBtn?.addEventListener("click", () => {
+      if (cart.length === 0) return;
+      const lines = cart
+        .map(
+          (item) =>
+            `• ${item.name} x${item.qty} — S/ ${(item.price * item.qty).toFixed(2)}`,
+        )
+        .join("\n");
+      const total = cart
+        .reduce((sum, item) => sum + item.price * item.qty, 0)
+        .toFixed(2);
+      const msg = `¡Hola! Quiero hacer el siguiente pedido:\n\n${lines}\n\n*Total: S/ ${total}*\n\n¿Pueden confirmar disponibilidad y costo de delivery? 🍣`;
+      window.open(
+        `https://wa.me/51941442899?text=${encodeURIComponent(msg)}`,
+        "_blank",
+      );
+    });
+
+    const menuGrid = document.getElementById("menuGrid");
+    menuGrid?.addEventListener("click", (event) => {
+      if (!(event.target instanceof HTMLElement)) return;
+      const btn = event.target.closest(".add-btn");
+      if (!(btn instanceof HTMLElement)) return;
+      const card = btn.closest(".menu-card");
+      if (!(card instanceof HTMLElement)) return;
+      addToCart(
+        String(card.dataset.id),
+        String(card.dataset.name),
+        String(card.dataset.price),
+        String(card.dataset.img),
+      );
+      btn.textContent = "✓";
+      btn.classList.add("added");
+      setTimeout(() => {
+        btn.textContent = "+";
+        btn.classList.remove("added");
+      }, 1500);
+    });
+
+    document.querySelectorAll(".combo-add").forEach((btn) => {
+      if (!(btn instanceof HTMLElement)) return;
+      btn.addEventListener("click", () => {
+        const card = btn.closest(".combo-card");
+        if (!(card instanceof HTMLElement)) return;
+        addToCart(
+          String(card.dataset.id),
+          String(card.dataset.name),
+          String(card.dataset.price),
+          String(card.dataset.img),
+        );
+        toggleCart(true);
+      });
+    });
+
+    /** @param {boolean} open */
+    const toggleCart = (open) => {
+      const cartOverlay = document.getElementById("cartOverlay");
+      const cartDrawer = document.getElementById("cartDrawer");
+      cartDrawer?.classList.toggle("open", open);
+      cartOverlay?.classList.toggle("open", open);
+      document.body.style.overflow = open ? "hidden" : "";
+    };
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initCart);
+  } else {
+    initCart();
   }
 
   // // ── REVEAL ON SCROLL ──

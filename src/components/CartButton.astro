@@ -2,7 +2,7 @@
 import CartIcon from "../assets/icons/cart.svg";
 ---
 
-<button class="cart-btn backdrop-blur-md" id="openCart">
+<button type="button" aria-label="Abrir carrito" class="cart-btn backdrop-blur-md" id="openCart">
   <div class="relative">
     <CartIcon class="size-7 md:size-8" />
   </div>
@@ -51,21 +51,26 @@ import CartIcon from "../assets/icons/cart.svg";
 </style>
 
 <script>
-  const cartOverlay = document.getElementById("cartOverlay");
-  const cartDrawer = document.getElementById("cartDrawer");
+  const initCartButton = () => {
+    const cartOverlay = document.getElementById("cartOverlay");
+    const cartDrawer = document.getElementById("cartDrawer");
+    const openCart = document.getElementById("openCart");
+    const closeCart = document.getElementById("closeCart");
 
-  // ── OPEN/CLOSE CART ──
-  document
-    .getElementById("openCart")
-    .addEventListener("click", () => toggleCart(true));
-  document
-    .getElementById("closeCart")
-    .addEventListener("click", () => toggleCart(false));
-  cartOverlay.addEventListener("click", () => toggleCart(false));
+    function toggleCart(open) {
+      cartDrawer?.classList.toggle("open", open);
+      cartOverlay?.classList.toggle("open", open);
+      document.body.style.overflow = open ? "hidden" : "";
+    }
 
-  function toggleCart(open) {
-    cartDrawer.classList.toggle("open", open);
-    cartOverlay.classList.toggle("open", open);
-    document.body.style.overflow = open ? "hidden" : "";
+    openCart?.addEventListener("click", () => toggleCart(true));
+    closeCart?.addEventListener("click", () => toggleCart(false));
+    cartOverlay?.addEventListener("click", () => toggleCart(false));
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initCartButton);
+  } else {
+    initCartButton();
   }
 </script>

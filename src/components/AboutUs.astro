@@ -77,6 +77,7 @@ const STATCARDS = [
     <!-- Dots + flechas -->
     <div class="flex items-center justify-between px-8 pb-8 pt-2">
       <button
+        type="button"
         id="info-prev"
         aria-label="Anterior"
         class="text-white/50 hover:text-(--gold) transition-colors"
@@ -86,20 +87,24 @@ const STATCARDS = [
 
       <div class="flex gap-3" id="info-dots">
         <button
+          type="button"
           data-dot="0"
           aria-label="Primera cartilla"
           class="info-dot w-6 h-4 rounded-full bg-(--gold) transition-all"></button>
         <button
+          type="button"
           data-dot="1"
           aria-label="Segunda cartilla"
           class="info-dot size-4 rounded-full bg-white/20 transition-all"></button>
         <button
+          type="button"
           data-dot="2"
           aria-label="Tercera cartilla"
           class="info-dot size-4 rounded-full bg-white/20 transition-all"></button>
       </div>
 
       <button
+        type="button"
         id="info-next"
         aria-label="Siguiente"
         class="text-white/50 hover:text-(--gold) transition-colors"

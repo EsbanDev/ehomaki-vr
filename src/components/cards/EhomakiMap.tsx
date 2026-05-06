@@ -57,6 +57,8 @@ export function EhomakiMap() {
               <img
                 src="/og-wallpaper.png"
                 alt="Ehomakis Map"
+                width="640"
+                height="320"
                 className="w-full h-full object-cover"
               />
             </div>

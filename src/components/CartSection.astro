@@ -8,7 +8,7 @@ import CartButton from "./CartButton.astro";
 <div class="cart-drawer" id="cartDrawer">
   <div class="cart-head">
     <h2>Tu Pedido</h2>
-    <button class="cart-close" id="closeCart">✕</button>
+    <button type="button" class="cart-close" id="closeCart" aria-label="Cerrar carrito">✕</button>
   </div>
   <div class="cart-items" id="cartItems">
     <div class="cart-empty" id="cartEmpty">
@@ -29,7 +29,7 @@ import CartButton from "./CartButton.astro";
       <span class="label">Total</span>
       <span class="amount" id="cartTotal">S/ 0</span>
     </div>
-    <button class="checkout-btn" id="checkoutBtn">Pedir por WhatsApp →</button>
+    <button type="button" class="checkout-btn" id="checkoutBtn" aria-label="Enviar pedido por WhatsApp">Pedir por WhatsApp →</button>
     <p class="whatsapp-note">
       Te redirigiremos a WhatsApp con tu pedido listo para enviar.
     </p>

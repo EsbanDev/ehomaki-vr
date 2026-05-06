@@ -15,6 +15,8 @@ export function MenuCard({ item }: { item: any }) {
             className="card-img"
             src={item.image}
             alt={item.name}
+            width="360"
+            height="240"
             loading="lazy"
           />
           {item.badge && <span className="card-badge">{item.badge}</span>}
@@ -26,7 +28,7 @@ export function MenuCard({ item }: { item: any }) {
             <div className="card-price">
               S/ {item.price} <span>/ {item.portion}</span>
             </div>
-            <button className="add-btn" title="Agregar al carrito">
+            <button type="button" className="add-btn" title="Agregar al carrito">
               +
             </button>
           </div>
@@ -36,7 +38,7 @@ export function MenuCard({ item }: { item: any }) {
         <div className="card-price">
           S/ {item.price} <span>/ {item.portion}</span>
         </div>
-        <button className="add-btn" title="Agregar al carrito">
+        <button type="button" className="add-btn" title="Agregar al carrito">
           +
         </button>
       </div>

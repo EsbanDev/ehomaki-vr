@@ -16,6 +16,7 @@ export function MenuGrid() {
       >
         {BUTTONS.map((button) => (
           <button
+            type="button"
             key={button}
             onClick={() => setActiveCategory(button.toLowerCase())}
             className={`${activeCategory === button.toLowerCase() ? "bg-(--gold) text-(--black)" : "bg-transparent text-muted hover:text-white hover:bg-[#b6b6b633]"} text-xs uppercase cursor-pointer rounded-md font-['DM_Sans'] py-2 px-5 transition-all tracking-widest`}
