@@ -194,7 +194,6 @@
   position: relative;
   overflow: hidden;
   transition: background 0.2s;
-  display: block;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -203,6 +202,13 @@
 
   @media (max-width: 768px) {
     flex-direction: row;
+    padding: 1rem;
+    gap: 0.75rem;
+  }
+
+  @media (max-width: 480px) {
+    padding: 0.75rem;
+    gap: 0.5rem;
   }
 }
 
@@ -224,10 +230,23 @@
 }
 
 @media (max-width: 768px) {
-
   .menu-card > div {
     display: flex;
     flex-direction: row;
+    gap: 1rem;
+    flex: 1;
+  }
+
+  .menu-card > div > div:last-child {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .menu-card > div {
     gap: 1rem;
   }
 }
@@ -237,10 +256,16 @@
   overflow: hidden;
   margin-bottom: 1.25rem;
   position: relative;
+  width: 100%;
 
   @media (max-width: 768px) {
     margin-bottom: 0px;
-    width: 150px;
+    width: 120px;
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 480px) {
+    width: 100px;
   }
 }
 .card-img {
@@ -281,7 +306,14 @@
   margin-bottom: 1.25rem;
 
   @media (max-width: 768px) {
-    font-size: 14px;
+    font-size: 0.75rem;
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 0.7rem;
+    margin-bottom: 0.5rem;
   }
 }
 
@@ -289,11 +321,27 @@
   font-family: "Bebas Neue", sans-serif;
   font-size: 1.5rem;
   color: var(--gold);
+
+  @media (max-width: 768px) {
+    font-size: 1.25rem;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 1.1rem;
+  }
 }
 .card-price span {
   font-family: "DM Sans", sans-serif;
   font-size: 0.7rem;
   color: var(--muted);
+
+  @media (max-width: 768px) {
+    font-size: 0.65rem;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 0.6rem;
+  }
 }
 .add-btn {
   background: none;
@@ -308,6 +356,18 @@
   font-size: 1.25rem;
   transition: all 0.2s;
   line-height: 1;
+
+  @media (max-width: 768px) {
+    width: 32px;
+    height: 32px;
+    font-size: 1.1rem;
+  }
+
+  @media (max-width: 480px) {
+    width: 28px;
+    height: 28px;
+    font-size: 1rem;
+  }
 }
 .add-btn:hover {
   border-color: var(--gold);

@@ -84,16 +84,19 @@ const STATCARDS = [
         <ChevronLeft class="size-5" />
       </button>
 
-      <div class="flex gap-2" id="info-dots">
+      <div class="flex gap-3" id="info-dots">
         <button
           data-dot="0"
-          class="info-dot w-6 h-0.5 bg-(--gold) transition-all"></button>
+          aria-label="Primera cartilla"
+          class="info-dot w-6 h-4 rounded-full bg-(--gold) transition-all"></button>
         <button
           data-dot="1"
-          class="info-dot w-2 h-0.5 bg-white/20 transition-all"></button>
+          aria-label="Segunda cartilla"
+          class="info-dot size-4 rounded-full bg-white/20 transition-all"></button>
         <button
           data-dot="2"
-          class="info-dot w-2 h-0.5 bg-white/20 transition-all"></button>
+          aria-label="Tercera cartilla"
+          class="info-dot size-4 rounded-full bg-white/20 transition-all"></button>
       </div>
 
       <button
@@ -191,7 +194,7 @@ const STATCARDS = [
 
     dots.forEach((dot, i) => {
       const isActive = i === current;
-      dot.style.width = isActive ? "1.5rem" : "0.5rem";
+      dot.style.width = isActive ? "1.5rem" : "1rem";
       dot.style.background = isActive ? "var(--gold)" : "rgba(255,255,255,0.2)";
     });
   }

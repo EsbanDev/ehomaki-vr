@@ -17,11 +17,11 @@ export function AdMarquee() {
     <Marquee className="bg-(--gold)">
       {MARQUEE_ITEMS.map((item) => (
         <div key={item} className="flex items-center">
-          <span className="text-lg font-bold px-4 whitespace-nowrap">
+          <span className="text-lg font-bold px-4 whitespace-nowrap text-black">
             {item}
           </span>
 
-          <span className="mx-2 opacity-50">✦</span>
+          <span className="mx-2 opacity-50 text-black">✦</span>
         </div>
       ))}
     </Marquee>
