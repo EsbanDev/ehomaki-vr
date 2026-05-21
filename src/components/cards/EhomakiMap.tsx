@@ -36,7 +36,7 @@ export function EhomakiMap() {
             onChange={(e) => setStyle(e.target.value as StyleKey)}
             className="border-gray-600 bg-gray-800 text-white hover:bg-gray-700 rounded-md border px-2 py-1 text-sm shadow focus:ring-1 focus:ring-white"
           >
-            <option value="default">Oscuro (Carto)</option>
+            <option value="default">Carto</option>
             <option value="openstreetmap">Tradicional (OSM)</option>
           </select>
         </div>
