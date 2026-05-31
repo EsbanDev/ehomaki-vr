@@ -6,19 +6,20 @@ interface Props {
   price: number;
   pieces: string;
   description: string;
+  slug: string;
 }
 
-const { id, name, shortName, price, pieces, description } = Astro.props;
+const { id, name, shortName, price, pieces, description, slug } = Astro.props;
 ---
 
 <div
-  class="group relative overflow-hidden
+  class="group relative overflow-hidden flex flex-col h-85
     border border-[#1b1812]
     bg-[#090806]
     p-6 md:p-8
     text-center
-    transition-colors duration-300
-    hover:bg-[#100d09]"
+    transition-all duration-500
+    hover:border-[#c89b3c]/40 hover:-translate-y-1"
   data-id={id}
   data-name={name}
   data-price={price}
@@ -49,19 +50,6 @@ const { id, name, shortName, price, pieces, description } = Astro.props;
 
   <div class="relative z-10 flex h-full flex-col justify-between">
     <div>
-      {/* Pieces */}
-      <div
-        class="font-['Bebas_Neue']
-          text-[5rem] leading-none
-          text-[#c89b3c]/20
-          transition-all duration-500
-          group-hover:text-[#c89b3c]/30
-          group-hover:scale-105
-          md:text-[6rem]"
-      >
-        {pieces}
-      </div>
-
       {/* Name */}
       <h3
         class="mt-2
@@ -100,42 +88,33 @@ const { id, name, shortName, price, pieces, description } = Astro.props;
         S/ {price}
       </div>
 
-      <button
-        type="button"
-        class="group/btn relative w-full overflow-hidden cursor-pointer
-          border border-[#c89b3c]/70
-          bg-transparent
-          px-6 py-4
-          text-xs font-medium
-          uppercase tracking-[0.25em]
-          text-[#c89b3c]
-          transition-all duration-300
-          hover:text-black"
+      <a
+        href={`/combos/${slug}`}
+        class="group
+    inline-flex
+    items-center
+    gap-3
+    text-[#c89b3c]
+    uppercase
+    tracking-[0.3em]
+    text-xs
+    transition-colors duration-300
+    hover:text-[#f5f1ea]"
       >
-        {/* Hover bg */}
-        <span
-          class="absolute inset-0
-            origin-left scale-x-0
-            bg-[#c89b3c]
-            transition-transform duration-300 ease-out
-            group-hover/btn:scale-x-100"
-        ></span>
+        Ver detalles
 
-        {/* Content */}
         <span
-          class="relative z-10
-            flex items-center justify-center gap-3"
+          class="flex items-center justify-center
+      size-8
+      border border-[#c89b3c]/30
+      rounded-full
+      transition-all duration-300
+      group-hover:border-[#c89b3c]
+      group-hover:translate-x-1"
         >
-          Ordenar
-
-          <span
-            class="transition-transform duration-300
-              group-hover/btn:translate-x-1"
-          >
-            →
-          </span>
+          →
         </span>
-      </button>
+      </a>
     </div>
   </div>
 </div>

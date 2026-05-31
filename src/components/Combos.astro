@@ -1,61 +1,44 @@
 ---
 import ComboCard from "./cards/ComboCard.astro";
 import SectionContainer from "../components/SectionContainer.astro";
-
-const COMBOS = [
-  {
-    id: "c1",
-    name: "Box Infarto 30 pz",
-    shortName: "Box Infarto",
-    price: 55,
-    pieces: "30",
-    description:
-      "3 sabores de makis a elección. Ideal para compartir entre 2-3 personas.",
-  },
-  {
-    id: "c2",
-    name: "Box 40 Makis",
-    shortName: "Box 40 Makis",
-    price: 69,
-    pieces: "40",
-    description:
-      "4 sabores a elección. La opción más popular para grupos medianos.",
-  },
-  {
-    id: "c3",
-    name: "Box 50 Makis",
-    shortName: "Box 50 Makis",
-    price: 90,
-    pieces: "50",
-    description: "5 sabores a elección. Para los verdaderos amantes del sushi.",
-  },
-  {
-    id: "c4",
-    name: "Combo Premium",
-    shortName: "Combo Premium",
-    price: 125,
-    pieces: "★",
-    description:
-      "50 piezas + alitas (teriyaki, acevichadas y maracuyá). La experiencia completa.",
-  },
-];
+import { COMBOS } from "@/const/combos";
 ---
 
-<SectionContainer title="Boxes & Combos" subtitle="Para el grupo" name="combos">
-  <div class="grid grid-cols-2 lg:grid-cols-4 gap-px bg-[#1b1812]">
-    {
-      COMBOS.map((combo) => (
-        <ComboCard
-          id={combo.id}
-          name={combo.name}
-          shortName={combo.shortName}
-          price={combo.price}
-          pieces={combo.pieces}
-          description={combo.description}
-        />
-      ))
-    }
-  </div>
+<SectionContainer title="Boxes & Tablas" subtitle="Para el grupo" name="combos">
+  <section class="relative">
+    <div
+      class="flex gap-5
+      overflow-x-auto
+      snap-x snap-mandatory
+      py-4
+      scrollbar-thin
+      scrollbar-track-transparent
+      scrollbar-thumb-[#c89b3c]/20"
+    >
+      {
+        COMBOS.map((combo) => (
+          <div
+            class="
+            min-w-[320px]
+            max-w-[320px]
+            snap-start
+            shrink-0
+          "
+          >
+            <ComboCard
+              id={combo.slug}
+              name={combo.name}
+              shortName={combo.name}
+              price={combo.price}
+              pieces={combo.portion?.toString() || ""}
+              description={combo.shortDescription}
+              slug={combo.slug}
+            />
+          </div>
+        ))
+      }
+    </div>
+  </section>
 </SectionContainer>
 
 <style>

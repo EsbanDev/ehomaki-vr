@@ -1,0 +1,174 @@
+---
+import type { GetStaticPaths } from "astro";
+import { COMBOS } from "@/const/combos";
+import { CATEGORIAS } from "@/const/carta";
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+
+export const getStaticPaths = (() => {
+  return COMBOS.map((combo) => ({
+    params: { id: combo.slug },
+    props: { combo },
+  }));
+}) satisfies GetStaticPaths;
+
+const { combo } = Astro.props;
+
+// Get all sushi varieties (excluding complementos)
+const allVarieties = CATEGORIAS
+  .filter(cat => cat.id !== 'complementos')
+  .flatMap(cat => cat.items.map(item => ({
+    name: item.nombre,
+    ingredients: item.ingredientes,
+    category: cat.label
+  })));
+---
+
+<Layout>
+    <Header />
+  <section class="max-w-7xl mx-auto py-20">
+    <div class="overflow-hidden rounded-3xl border border-[#c89b3c]/20">
+      <img src={combo.image} alt={combo.description} class="w-full object-cover aspect-16/6" />
+    </div>
+
+    <div class="mt-10">
+      <h1 class="font-['Noto_Serif_JP'] text-5xl md:text-6xl text-[#f5f1ea]">
+        {combo.name}
+      </h1>
+
+      <p class="mt-4 max-w-3xl text-lg text-[#cfc5b6]">
+        {combo.shortDescription}
+      </p>
+
+      <div class="mt-8 grid sm:grid-cols-2 gap-3">
+        {combo.includes.map(item => (
+          <div class="flex items-center gap-3 rounded-xl border border-[#c89b3c]/10 bg-[#0c0a07] px-4 py-3">
+            <span class="text-[#c89b3c]">✓</span>
+            {item}
+          </div>
+        ))}
+      </div>
+
+      <div class="mt-10 flex items-end gap-2">
+        <span class="font-['Bebas_Neue'] text-7xl leading-none text-[#c89b3c]">
+          {combo.price}
+        </span>
+        <span class="mb-2 text-xl text-[#c89b3c]/70">soles</span>
+      </div>
+
+      {combo.canChooseVarieties && (
+        <div id="variety-selector" class="mt-10">
+          <h2 class="text-2xl font-bold mb-4 text-[#f5f1ea]">
+            Elige tus variedades ({combo.varietiesCount} {combo.varietiesCount === 1 ? 'variedad' : 'variedades'})
+          </h2>
+          <p class="text-[#cfc5b6]/70 mb-6">
+            Selecciona {combo.varietiesCount} {combo.varietiesCount === 1 ? 'variedad' : 'variedades'} de sushi
+          </p>
+
+          <div class="mb-8">
+            <div class="flex justify-between text-sm mb-2 text-[#cfc5b6]/70">
+              <span>Variedades seleccionadas</span>
+              <span id="count-display">0 / {combo.varietiesCount}</span>
+            </div>
+            <div class="h-2 rounded-full bg-[#1b1812] overflow-hidden">
+              <div id="progress" class="h-full w-0 bg-[#c89b3c] transition-all"></div>
+            </div>
+          </div>
+
+          <div id="varieties-list" class="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {allVarieties.map((variety) => (
+              <div class="variety-item group rounded-2xl border border-[#c89b3c]/10 bg-[#0c0a07] p-5 transition-all duration-300 hover:border-[#c89b3c]/30" data-variety={variety.name}>
+                <div class="flex-1">
+                  <div class="font-semibold text-[#f5f1ea]">{variety.name}</div>
+                  <div class="mt-2 text-sm text-[#cfc5b6]/70">{variety.ingredients}</div>
+                </div>
+                <div class="mt-4 flex items-center justify-between">
+                  <button class="decrement-btn size-10 rounded-xl border border-[#c89b3c]/20 hover:border-[#c89b3c] transition disabled:opacity-30 disabled:cursor-not-allowed" disabled>
+                    −
+                  </button>
+                  <span class="quantity text-xl font-bold text-[#c89b3c]">0</span>
+                  <button class="increment-btn size-10 rounded-xl border border-[#c89b3c]/20 hover:border-[#c89b3c] transition disabled:opacity-30 disabled:cursor-not-allowed">
+                    +
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <button id="add-to-cart" class="sticky bottom-6 mt-8 w-full h-16 rounded-2xl bg-[#c89b3c] text-black font-bold uppercase tracking-[0.15em] disabled:bg-[#1b1812] disabled:text-zinc-500 transition-all" disabled>
+            Añadir al carrito
+          </button>
+        </div>
+      )}
+
+      {!combo.canChooseVarieties && (
+        <button class="mt-10 w-full py-4 bg-amber-500 hover:bg-amber-600 text-white font-bold text-lg rounded-xl transition-colors">
+          Añadir al Carrito
+        </button>
+      )}
+    </div>
+  </section>
+
+  {combo.canChooseVarieties && (
+    <script define:vars={{ maxVarieties: combo.varietiesCount }}>
+      const varietiesList = document.getElementById('varieties-list');
+      const countDisplay = document.getElementById('count-display');
+      const progress = document.getElementById('progress');
+      const addToCartBtn = document.getElementById('add-to-cart');
+
+      let selectedVarieties = new Map();
+      let totalCount = 0;
+
+      function updateUI() {
+        countDisplay.textContent = `${totalCount} / ${maxVarieties}`;
+        addToCartBtn.disabled = totalCount !== maxVarieties;
+        progress.style.width = `${(totalCount / maxVarieties) * 100}%`;
+
+        const varietyItems = varietiesList.querySelectorAll('.variety-item');
+        varietyItems.forEach(item => {
+          const varietyName = item.dataset.variety;
+          const quantity = selectedVarieties.get(varietyName) || 0;
+          const decrementBtn = item.querySelector('.decrement-btn');
+          const incrementBtn = item.querySelector('.increment-btn');
+          const quantitySpan = item.querySelector('.quantity');
+
+          quantitySpan.textContent = quantity;
+          decrementBtn.disabled = quantity === 0;
+          incrementBtn.disabled = totalCount >= maxVarieties;
+        });
+      }
+
+      varietiesList.addEventListener('click', (e) => {
+        const varietyItem = e.target.closest('.variety-item');
+        if (!varietyItem) return;
+
+        const varietyName = varietyItem.dataset.variety;
+        const isIncrement = e.target.classList.contains('increment-btn');
+        const isDecrement = e.target.classList.contains('decrement-btn');
+
+        if (isIncrement && totalCount < maxVarieties) {
+          selectedVarieties.set(varietyName, (selectedVarieties.get(varietyName) || 0) + 1);
+          totalCount++;
+        } else if (isDecrement) {
+          const currentQuantity = selectedVarieties.get(varietyName) || 0;
+          if (currentQuantity > 0) {
+            selectedVarieties.set(varietyName, currentQuantity - 1);
+            totalCount--;
+          }
+        }
+
+        updateUI();
+      });
+
+      addToCartBtn.addEventListener('click', () => {
+        const selected = Array.from(selectedVarieties.entries())
+          .filter(([_, quantity]) => quantity > 0)
+          .map(([name, quantity]) => ({ name, quantity }));
+
+        console.log('Añadiendo al carrito:', selected);
+        alert('¡Añadido al carrito!\n\nVariedades seleccionadas:\n' + 
+          selected.map(v => `- ${v.name} (x${v.quantity})`).join('\n'));
+      });
+    </script>
+  )}
+</Layout>
