@@ -12,7 +12,7 @@ interface Props {
 const { id, name, shortName, price, pieces, description, slug } = Astro.props;
 ---
 
-<div
+<article
   class="group relative overflow-hidden flex flex-col h-85
     border border-[#1b1812]
     bg-[#090806]
@@ -48,8 +48,8 @@ const { id, name, shortName, price, pieces, description, slug } = Astro.props;
   >
   </div>
 
-  <div class="relative z-10 flex h-full flex-col justify-between">
-    <div>
+  <section class="relative z-10 flex h-full flex-col justify-between">
+    <header>
       {/* Name */}
       <h3
         class="mt-2
@@ -61,7 +61,11 @@ const { id, name, shortName, price, pieces, description, slug } = Astro.props;
       </h3>
 
       {/* Divider */}
-      <div class="my-5 flex items-center justify-center gap-2">
+      <div
+        class="my-5 flex items-center justify-center gap-2"
+        role="separator"
+        aria-orientation="horizontal"
+      >
         <div class="h-px w-10 bg-[#c89b3c]/30"></div>
         <div class="size-1 rounded-full bg-[#c89b3c]"></div>
         <div class="h-px w-10 bg-[#c89b3c]/30"></div>
@@ -75,18 +79,18 @@ const { id, name, shortName, price, pieces, description, slug } = Astro.props;
       >
         {description}
       </p>
-    </div>
+    </header>
 
     {/* Bottom */}
-    <div class="mt-10">
-      <div
+    <footer class="mt-10">
+      <p
         class="mb-6
           font-['Bebas_Neue']
           text-5xl leading-none
           text-[#c89b3c]"
       >
         S/ {price}
-      </div>
+      </p>
 
       <a
         href={`/combos/${slug}`}
@@ -115,6 +119,6 @@ const { id, name, shortName, price, pieces, description, slug } = Astro.props;
           →
         </span>
       </a>
-    </div>
-  </div>
-</div>
+    </footer>
+  </section>
+</article>
