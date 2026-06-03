@@ -14,3 +14,7 @@ export const showToast = (message: string) => {
     });
     window.dispatchEvent(event);
 };
+
+export const handleAddToCart = (message: string) => {
+    showToast(`✓ ${message} agregado al carrito`)
+};
