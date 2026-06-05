@@ -6,7 +6,9 @@ import "@fontsource/dm-sans";
 import "@fontsource/noto-serif-jp";
 
 import Footer from "@/components/Footer.astro"
-import CartSection from "@/components/CartSection.astro"
+import CartSection from "@/components/CartSection";
+import { ClientRouter } from "astro:transitions"
+import { Toast } from "@/components/Toast";
 ---
 
 <!doctype html>
@@ -48,14 +50,17 @@ import CartSection from "@/components/CartSection.astro"
       content="Disfruta de la mejor barra de sushi y cocina Nikkei en Lima. Makis, tablas, y sabores únicos con el toque peruano que nos distingue."
     />
     <meta name="twitter:image" content="/og-wallpaper.png" />
+
+    <ClientRouter />
   </head>
   <body>
     <main>
       <slot />
     </main>
   </body>
-  <CartSection />
+  <CartSection client:load />
   <Footer />
+  <Toast client:idle />
 </html>
 
 <style>

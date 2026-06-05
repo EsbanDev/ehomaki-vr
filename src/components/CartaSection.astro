@@ -1,4 +1,6 @@
 ---
+import { CartaItem } from "@/components/cards/CartaItem";
+
 interface Props {
   cat: {
     id: string;
@@ -13,8 +15,6 @@ interface Props {
 }
 
 const { cat } = Astro.props;
-
-import CartaItem from "./cards/CartaItem.astro";
 ---
 
 <section
@@ -24,7 +24,6 @@ import CartaItem from "./cards/CartaItem.astro";
     md:px-6 md:py-16"
   data-cat={cat.id}
 >
-
   {/* HEADER */}
   <div
     class="relative z-10 mb-10
@@ -105,12 +104,21 @@ import CartaItem from "./cards/CartaItem.astro";
   {/* GRID */}
   <div
     class="relative z-10
-      grid grid-cols-2
+      grid grid-cols-1
       gap-3
-      md:grid-cols-3
-      lg:grid-cols-4
+      md:grid-cols-2
+      lg:grid-cols-3
       xl:grid-cols-5"
   >
-    {cat.items.map((item) => <CartaItem cat={cat} item={item} />)}
+    {
+      cat.items.map((item) => (
+        <CartaItem
+          client:load
+          cat={cat}
+          item={item}
+          isComplement={cat.id === "complementos"}
+        />
+      ))
+    }
   </div>
 </section>

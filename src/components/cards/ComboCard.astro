@@ -4,16 +4,17 @@ interface Props {
   name: string;
   shortName: string;
   price: number;
-  pieces: string;
   description: string;
   slug: string;
+  img?: string;
 }
 
-const { id, name, shortName, price, pieces, description, slug } = Astro.props;
+const { id, name, shortName, price, description, slug, img } =
+  Astro.props;
 ---
 
-<div
-  class="group relative overflow-hidden flex flex-col h-85
+<article
+  class="combo-card group relative overflow-hidden flex flex-col h-85
     border border-[#1b1812]
     bg-[#090806]
     p-6 md:p-8
@@ -23,6 +24,7 @@ const { id, name, shortName, price, pieces, description, slug } = Astro.props;
   data-id={id}
   data-name={name}
   data-price={price}
+  data-img={img || ""}
 >
   {/* Glow */}
   <div
@@ -48,20 +50,25 @@ const { id, name, shortName, price, pieces, description, slug } = Astro.props;
   >
   </div>
 
-  <div class="relative z-10 flex h-full flex-col justify-between">
-    <div>
+  <section class="relative z-10 flex h-full flex-col justify-between">
+    <header>
       {/* Name */}
       <h3
         class="mt-2
           font-['Noto_Serif_JP']
           text-xl font-bold
           text-[#f5f1ea]"
+        transition:name={`combo-${slug}`}
       >
         {shortName}
       </h3>
 
       {/* Divider */}
-      <div class="my-5 flex items-center justify-center gap-2">
+      <div
+        class="my-5 flex items-center justify-center gap-2"
+        role="separator"
+        aria-orientation="horizontal"
+      >
         <div class="h-px w-10 bg-[#c89b3c]/30"></div>
         <div class="size-1 rounded-full bg-[#c89b3c]"></div>
         <div class="h-px w-10 bg-[#c89b3c]/30"></div>
@@ -72,21 +79,23 @@ const { id, name, shortName, price, pieces, description, slug } = Astro.props;
         class="mx-auto max-w-65
           text-sm leading-7
           text-[#cfc5b6]"
+        transition:name={`combo-${slug}-description`}
       >
         {description}
       </p>
-    </div>
+    </header>
 
     {/* Bottom */}
-    <div class="mt-10">
-      <div
+    <footer class="mt-10">
+      <p
         class="mb-6
           font-['Bebas_Neue']
           text-5xl leading-none
           text-[#c89b3c]"
+        transition:name={`combo-${slug}-price`}
       >
         S/ {price}
-      </div>
+      </p>
 
       <a
         href={`/combos/${slug}`}
@@ -115,6 +124,6 @@ const { id, name, shortName, price, pieces, description, slug } = Astro.props;
           →
         </span>
       </a>
-    </div>
-  </div>
-</div>
+    </footer>
+  </section>
+</article>

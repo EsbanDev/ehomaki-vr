@@ -14,3 +14,16 @@ export const showToast = (message: string) => {
     });
     window.dispatchEvent(event);
 };
+
+export const handleAddToCart = (id: string, name: string, price: number, img: string) => {
+    const event = new CustomEvent("addToCart", {
+        detail: {
+            id,
+            name,
+            price,
+            img,
+        },
+    });
+    window.dispatchEvent(event);
+    showToast(`${name} agregado ✓`);
+};

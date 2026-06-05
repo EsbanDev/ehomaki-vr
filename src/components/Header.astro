@@ -22,8 +22,8 @@ import TiktokIcon from "@/assets/tiktok.svg";
     <span></span>
   </button>
   <ul class="nav-links" id="nav-links">
-    <li><a href="/#menu">Menú</a></li>
-    <li><a href="/#combos">Combos</a></li>
+    <li><a href="/carta">Carta</a></li>
+    <li><a href="/combos">Combos</a></li>
     <li><a href="/#visitanos">Visítanos</a></li>
     <li class="social-links">
       <ul class="flex gap-2">
@@ -241,17 +241,19 @@ import TiktokIcon from "@/assets/tiktok.svg";
 </style>
 
 <script>
-  const menuToggle = document.getElementById("menu-toggle");
-  const navLinks = document.getElementById("nav-links");
+  document.addEventListener("click", (event) => {
+    const button = event.target.closest("#menu-toggle");
 
-  menuToggle?.addEventListener("click", () => {
-    const expanded = menuToggle.getAttribute("aria-expanded") === "true";
+    if (!button) return;
+
+    const navLinks = document.getElementById("nav-links");
+
+    const expanded = button.getAttribute("aria-expanded") === "true";
+
     navLinks?.classList.toggle("active");
-    menuToggle?.classList.toggle("active");
-    menuToggle?.setAttribute("aria-expanded", String(!expanded));
-    menuToggle?.setAttribute(
-      "aria-label",
-      expanded ? "Abrir menú" : "Cerrar menú",
-    );
+    button.classList.toggle("active");
+
+    button.setAttribute("aria-expanded", String(!expanded));
+    button.setAttribute("aria-label", expanded ? "Abrir menú" : "Cerrar menú");
   });
 </script>

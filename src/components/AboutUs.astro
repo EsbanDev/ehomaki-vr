@@ -247,29 +247,26 @@ const STATCARDS = [
         <ChevronLeft class="size-4" />
       </button>
 
-      <div class="flex items-center gap-2" id="info-dots">
+      <div class="flex items-center gap-4" id="info-dots">
         <button
           type="button"
+          aria-label="Ir a slide 1: Nuestra filosofía"
           data-dot="0"
-          class="info-dot h-2 w-8 rounded-full
-            bg-[#c89b3c]
-            transition-all duration-300"
+          class="info-dot w-6 h-4 rounded-full bg-(--gold) transition-all"
         ></button>
 
         <button
           type="button"
           data-dot="1"
-          class="info-dot size-2 rounded-full
-            bg-white/20
-            transition-all duration-300"
+          aria-label="Ir a slide 2: Frescura garantizada"
+          class="info-dot size-4 rounded-full bg-white/20 transition-all"
         ></button>
 
         <button
           type="button"
           data-dot="2"
-          class="info-dot size-2 rounded-full
-            bg-white/20
-            transition-all duration-300"
+          aria-label="Ir a slide 3: Experiencia única"
+          class="info-dot size-4 rounded-full bg-white/20 transition-all"
         ></button>
       </div>
 
@@ -308,11 +305,11 @@ const STATCARDS = [
     dots.forEach((dot, i) => {
       const active = i === current;
 
-      dot.classList.toggle("w-8", active);
-      dot.classList.toggle("h-2", active);
+      dot.classList.toggle("w-6", active);
+      
       dot.classList.toggle("bg-[#c89b3c]", active);
 
-      dot.classList.toggle("size-2", !active);
+      dot.classList.toggle("w-4", !active);
       dot.classList.toggle("bg-white/20", !active);
     });
   }
