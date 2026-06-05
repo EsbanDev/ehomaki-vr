@@ -11,12 +11,16 @@ interface SelectVarietyProps {
   varietiesCount: number;
   allVarieties: Variety[];
   name: string;
+  comboPrice?: number;
+  comboImg?: string;
 }
 
 export function SelectVariety({
   varietiesCount,
   allVarieties,
   name,
+  comboPrice,
+  comboImg,
 }: SelectVarietyProps) {
   const [selectedVarieties, setSelectedVarieties] = useState<
     Map<string, number>
@@ -151,6 +155,8 @@ export function SelectVariety({
         disabled={totalCount !== varietiesCount}
         isSticky={true}
         combo={comboDone}
+        comboPrice={comboPrice}
+        comboImg={comboImg}
       />
     </div>
   );

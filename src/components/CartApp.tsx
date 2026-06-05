@@ -132,6 +132,14 @@ export default function CartApp() {
       button.addEventListener("click", handleComboClick);
     });
 
+    const handleAddToCartEvent = (event: Event) => {
+      const customEvent = event as CustomEvent<{ id: string; name: string; price: number; img: string }>;
+      const { id, name, price, img } = customEvent.detail;
+      addToCart(id, name, price, img);
+    };
+
+    window.addEventListener("addToCart", handleAddToCartEvent);
+
     return () => {
       if (menuGrid) {
         menuGrid.removeEventListener("click", handleMenuClick);
@@ -139,6 +147,7 @@ export default function CartApp() {
       comboButtons.forEach((button) => {
         button.removeEventListener("click", handleComboClick);
       });
+      window.removeEventListener("addToCart", handleAddToCartEvent);
     };
   }, []);
 
