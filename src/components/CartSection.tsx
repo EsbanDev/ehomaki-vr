@@ -8,7 +8,7 @@ export default function CartSection() {
   const [cartCount, setCartCount] = useState(0);
 
   useEffect(() => {
-    console.log("cartStore", cartStore.get().length);
+    // console.log("cartStore", cartStore.get().length);
     // carga inicial desde localStorage
     const getCount = () => cartStore.get().length;
     setCartCount(getCount());
