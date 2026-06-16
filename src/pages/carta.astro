@@ -483,7 +483,7 @@ const totalItems = CATEGORIAS.reduce((acc, cat) => acc + cat.items.length, 0);
 </style>
 
 <script is:inline>
-  document.addEventListener("DOMContentLoaded", () => {
+  function initFilters() {
     const filterBtns = document.querySelectorAll(".filter-btn");
     const sections = document.querySelectorAll(".cat-section");
 
@@ -510,7 +510,6 @@ const totalItems = CATEGORIAS.reduce((acc, cat) => acc + cat.items.length, 0);
       });
     });
 
-    // BUSCADOR
     searchInput.addEventListener("input", () => {
       const q = (searchInput.value || "").toLowerCase().trim();
       const cards = document.querySelectorAll(".maki-card");
@@ -525,7 +524,9 @@ const totalItems = CATEGORIAS.reduce((acc, cat) => acc + cat.items.length, 0);
       });
 
       sections.forEach((sec) => {
-        const hasVisible = Array.from(sec.querySelectorAll(".maki-card")).some((c) => c.style.display !== "none");
+        const hasVisible = Array.from(sec.querySelectorAll(".maki-card")).some(
+          (c) => c.style.display !== "none"
+        );
         sec.style.display = hasVisible ? "" : "none";
       });
 
@@ -543,5 +544,12 @@ const totalItems = CATEGORIAS.reduce((acc, cat) => acc + cat.items.length, 0);
       searchInput.dispatchEvent(new Event("input"));
       if (filterBtns[0]) filterBtns[0].classList.add("active");
     });
-  });
+  }
+
+  // Cubre ambos casos: DOM ya listo o aún cargando
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initFilters);
+  } else {
+    initFilters();
+  }
 </script>
