@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useCart, formatCurrency } from "@/hooks/useCart";
 import CartItemRow from "@/components/cards/cart-item-row";
+import { ShippingModal } from "@/components/modals/shipping-modal";
+import  OrderModal  from "@/components/modals/order-modal";
 
 export default function CarritoApp() {
   const { items, isHydrated, subtotal, totalItems } = useCart();
@@ -8,6 +10,7 @@ export default function CarritoApp() {
     "delivery" | "pickup" | null
   >(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [orderModalOpen, setOrderModalOpen] = useState(false);
 
   const [showShippingError, setShowShippingError] = useState(false);
 
@@ -18,8 +21,7 @@ export default function CarritoApp() {
     }
 
     setShowShippingError(false);
-
-    // Continuar
+    setOrderModalOpen(true);
   };
 
   const deliveryCost = 5;
@@ -188,72 +190,20 @@ export default function CarritoApp() {
 
       {/* Modal de selección de envío */}
       {isModalOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
-          onClick={() => setIsModalOpen(false)}
-        >
-          <div
-            className="relative w-full max-w-md rounded-3xl border border-(--gold)/20 bg-[#111]/95 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.5)]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="mb-2 text-2xl font-bold text-white">
-              Selecciona tipo de envío
-            </h3>
-            <p className="mb-6 text-sm text-white/50">
-              Elige cómo quieres recibir tu pedido
-            </p>
-
-            <div className="space-y-3">
-              <button
-                onClick={() => {
-                  setShippingOption("delivery");
-                  setIsModalOpen(false);
-                }}
-                className="group w-full rounded-2xl border border-(--gold)/10 bg-white/5 p-5 text-left transition-all hover:border-(--gold)/30 hover:bg-white/10"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="font-semibold text-white">Delivery</div>
-                    <div className="mt-1 text-sm text-white/50">
-                      Recibe tu pedido en casa
-                    </div>
-                  </div>
-                  <div className="text-(--gold) font-bold">
-                    + {formatCurrency(deliveryCost)}
-                  </div>
-                </div>
-              </button>
-
-              <button
-                onClick={() => {
-                  setShippingOption("pickup");
-                  setIsModalOpen(false);
-                }}
-                className="group w-full rounded-2xl border border-(--gold)/10 bg-white/5 p-5 text-left transition-all hover:border-(--gold)/30 hover:bg-white/10"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="font-semibold text-white">
-                      Recojo en tienda
-                    </div>
-                    <div className="mt-1 text-sm text-white/50">
-                      Pasa por tu pedido cuando quieras
-                    </div>
-                  </div>
-                  <div className="text-(--gold) font-bold">Gratis</div>
-                </div>
-              </button>
-            </div>
-
-            <button
-              onClick={() => setIsModalOpen(false)}
-              className="mt-6 w-full rounded-full border border-white/10 py-3 text-sm font-medium text-white/70 transition hover:bg-white/5 hover:text-white"
-            >
-              Cancelar
-            </button>
-          </div>
-        </div>
+        <ShippingModal
+          onClose={() => setIsModalOpen(false)}
+          onConfirm={(option) => {
+            setShippingOption(option);
+            setIsModalOpen(false);
+          }}
+        />
       )}
+      <OrderModal
+        open={orderModalOpen}
+        onClose={() => setOrderModalOpen(false)}
+        total={total}
+        orden={items}
+      />
     </div>
   );
 }
