@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { formatCurrency } from "@/hooks/useCart";
 import type { CartItem } from "@/hooks/useCart";
-import { User, CreditCard } from 'lucide-react'
+import { User, CreditCard } from "lucide-react";
 
 interface OrderModalProps {
   open: boolean;
   onClose: () => void;
   total: number;
   orden: CartItem[];
+  envio: "delivery" | "pickup" | null;
 }
 
 const PAYMENT_METHODS = [
@@ -16,23 +17,63 @@ const PAYMENT_METHODS = [
   { id: "plin", label: "Plin" },
 ];
 
-export default function OrderModal({ open, onClose, total, orden }: OrderModalProps) {
+export default function OrderModal({
+  open,
+  onClose,
+  total,
+  orden,
+  envio,
+}: OrderModalProps) {
   const [step, setStep] = useState<1 | 2>(1);
-  const [customerName, setCustomerName] = useState("");
   const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
+  // Al inicio del componente, junto al resto de estados
+  const [customerName, setCustomerName] = useState(() => {
+    if (typeof window === "undefined") return "";
+    return localStorage.getItem("customerName") ?? "";
+  });
+  const [keepName, setKeepName] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("keepName") === "true";
+  });
 
-  const payloadOrden = orden.map(item => ({
+  const payloadOrden = orden.map((item) => ({
     id: item.id,
     quantity: item.qty,
-    items: item.items
+    items: item.items,
   }));
 
   const ordenInfo = {
     cliente: customerName,
     metodoPago: selectedPayment,
     total: total,
-    items: payloadOrden
+    items: payloadOrden,
+  };
+
+  function getOrCreateGuestId(): string {
+    const existing = localStorage.getItem("guestId");
+    if (existing) return existing;
+    const newId = crypto.randomUUID();
+    localStorage.setItem("guestId", newId);
+    return newId;
   }
+
+  // Handler unificado para el checkbox
+  const handleKeepName = (checked: boolean) => {
+    setKeepName(checked);
+    if (checked) {
+      localStorage.setItem("keepName", "true");
+      localStorage.setItem("customerName", customerName);
+    } else {
+      localStorage.removeItem("keepName");
+      localStorage.removeItem("customerName");
+    }
+  };
+
+  // Handler para el input — si keep está activo, persiste en tiempo real
+  const handleNameChange = (value: string) => {
+    setCustomerName(value);
+    if (keepName) localStorage.setItem("customerName", value);
+  };
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -48,19 +89,21 @@ export default function OrderModal({ open, onClose, total, orden }: OrderModalPr
 
   const handleClose = () => {
     setStep(1);
-    setCustomerName("");
+    !keepName && setCustomerName("");
     setSelectedPayment(null);
     onClose();
   };
 
   const enviarPedido = () => {
-    console.warn('Enviando pedido');
-    console.log('Total:', total);
-    console.log('Método de pago:', selectedPayment);
-    console.log('Nombre del cliente:', customerName);
-    console.log('Items:', ordenInfo);
+    console.warn("Enviando pedido");
+    console.log("Total:", total);
+    console.log("Método de pago:", selectedPayment);
+    console.log("Nombre del cliente:", customerName);
+    console.log("Envio:", envio);
+    console.log("Guest ID:", getOrCreateGuestId());
+    console.log("Items:", ordenInfo);
 
-    handleClose()
+    handleClose();
   };
 
   return (
@@ -138,15 +181,54 @@ export default function OrderModal({ open, onClose, total, orden }: OrderModalPr
                 id="customerName"
                 type="text"
                 value={customerName}
-                onChange={(e) => setCustomerName(e.target.value)}
+                onChange={(e) => handleNameChange(e.target.value)}
                 placeholder="Ej. María Torres"
                 className="
-                  mt-2 rounded-xl border border-white/10 bg-white/3
-                  px-4 py-3 text-white placeholder:text-white/30
-                  outline-none transition-colors
-                  focus:border-(--gold)/40
-                "
+    mt-2 w-full rounded-xl border border-white/10 bg-white/3
+    px-4 py-3 text-white placeholder:text-white/30
+    outline-none transition-colors focus:border-(--gold)/40
+  "
               />
+
+              <label className="mt-3 flex cursor-pointer items-center gap-2.5 select-none">
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    checked={keepName}
+                    onChange={(e) => handleKeepName(e.target.checked)}
+                    className="peer sr-only"
+                  />
+                  {/* Custom checkbox visual */}
+                  <div
+                    className="
+      h-4 w-4 rounded border border-white/20 bg-white/5
+      transition-colors
+      peer-checked:border-(--gold)/60 peer-checked:bg-(--gold)/20
+    "
+                  />
+                  {/* Checkmark */}
+                  <svg
+                    className="
+        pointer-events-none absolute inset-0 m-auto h-2.5 w-2.5
+        text-(--gold) opacity-0 transition-opacity
+        peer-checked:opacity-100
+      "
+                    viewBox="0 0 10 10"
+                    fill="none"
+                  >
+                    <path
+                      d="M1.5 5l2.5 2.5 4.5-4.5"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+                <span className="text-sm text-white/50 peer-checked:text-white/70 transition-colors">
+                  Recordar mi nombre para futuros pedidos
+                </span>
+              </label>
             </div>
           )}
 
