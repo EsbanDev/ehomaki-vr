@@ -75,9 +75,9 @@ export default function CartApp({ handleCloseCart }: { handleCloseCart: any }) {
             </a>
           </div>
         ) : (
-          cart.map((item) => (
+          cart.map((item, index) => (
             <CartItem
-              key={item.id}
+              key={`${item.id}-${index}`}
               item={item}
               onRemove={handleRemove}
               onIncrement={handleIncrement}

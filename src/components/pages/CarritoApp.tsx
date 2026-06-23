@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useCart, formatCurrency } from "@/hooks/useCart";
 import CartItemRow from "@/components/cards/cart-item-row";
 import { ShippingModal } from "@/components/modals/shipping-modal";
-import  OrderModal  from "@/components/modals/order-modal";
+import OrderModal from "@/components/modals/order-modal";
 
 export default function CarritoApp() {
   const { items, isHydrated, subtotal, totalItems } = useCart();
@@ -35,18 +35,34 @@ export default function CarritoApp() {
 
   if (items.length === 0) {
     return (
-      <div className="mx-auto flex max-w-2xl flex-col items-center gap-4 px-4 py-24 text-center">
-        <h1 className="font-serif text-3xl text-neutral-900">
+      <div className="mx-auto flex min-h-[90vh] max-w-2xl flex-col items-center justify-center px-4 text-center">
+        <div className="mb-4 rounded-full border border-(--gold)/20 bg-(--gold)/10 px-4 py-2 text-xs font-medium uppercase tracking-[0.2em] text-(--gold)">
+          Carrito
+        </div>
+
+        <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl">
           Tu carrito está vacío
         </h1>
-        <p className="text-neutral-500">
-          Explora la carta y agrega tus piezas favoritas.
+
+        <div className="mt-4 h-1 w-20 rounded-full bg-(--gold)" />
+
+        <p className="mt-6 max-w-md text-base leading-relaxed text-white/50">
+          Explora nuestra carta y agrega tus piezas favoritas para comenzar tu
+          pedido.
         </p>
+
         <a
-          href="/menu"
-          className="mt-2 rounded-full bg-red-800 px-6 py-3 text-sm font-medium text-white transition hover:bg-red-900 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-red-700"
+          href="/carta"
+          className="group mt-10 inline-flex items-center gap-2 rounded-full bg-(--gold) px-8 py-4
+          text-sm font-bold uppercase tracking-[0.18em] text-black
+          transition-all duration-300
+          hover:-translate-y-1 hover:bg-[#dfaa4c] hover:shadow-[0_10px_30px_rgba(200,155,60,0.3)]
+          active:translate-y-0"
         >
           Ver la carta
+          <span className="transition-transform duration-300 group-hover:translate-x-1">
+            →
+          </span>
         </a>
       </div>
     );
@@ -72,8 +88,8 @@ export default function CarritoApp() {
 
       <div className="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-3">
         <ul className="space-y-4 lg:col-span-2">
-          {items.map((item) => (
-            <CartItemRow key={item.id} item={item} />
+          {items.map((item, index) => (
+            <CartItemRow key={`${item.id}-${index}`} item={item} />
           ))}
         </ul>
 
@@ -203,6 +219,7 @@ export default function CarritoApp() {
         onClose={() => setOrderModalOpen(false)}
         total={total}
         orden={items}
+        envio={shippingOption}
       />
     </div>
   );
