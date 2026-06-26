@@ -186,7 +186,7 @@ export default function AccessibilityAside({
             )}
             <button
               type="button"
-              className={`filter-option ${isReadingMaskActive ? "active" : ""}`}
+              className={`filter-option hidden lg:flex ${isReadingMaskActive ? "active" : ""}`}
               onClick={handleReadingMaskToggle}
               aria-label="Activar máscara de lectura"
               aria-pressed={isReadingMaskActive}
@@ -196,7 +196,7 @@ export default function AccessibilityAside({
             </button>
             <button
               type="button"
-              className={`filter-option ${isReducedMotion ? "active" : ""}`}
+              className={`filter-option flex ${isReducedMotion ? "active" : ""}`}
               onClick={() => setIsReducedMotion(!isReducedMotion)}
               aria-pressed={isReducedMotion}
               aria-label="Reducir animaciones"
@@ -206,7 +206,7 @@ export default function AccessibilityAside({
             </button>
             <button
               type="button"
-              className={`filter-option ${isHighContrast ? "active" : ""}`}
+              className={`filter-option flex ${isHighContrast ? "active" : ""}`}
               onClick={() => setIsHighContrast(!isHighContrast)}
               aria-pressed={isHighContrast}
               aria-label="Activar alto contraste"
@@ -216,7 +216,7 @@ export default function AccessibilityAside({
             </button>
             <button
               type="button"
-              className={`filter-option flex-col gap-1 ${fontSize > 0 ? "active" : ""}`}
+              className={`filter-option flex flex-col gap-1 ${fontSize > 0 ? "active" : ""}`}
               onClick={() => setFontSize((i) => (i + 1) % FONT_SIZES.length)}
               aria-label={`Tamaño de texto: ${FONT_SIZES[fontSize].value}%`}
               aria-pressed={fontSize > 0}
