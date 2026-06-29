@@ -1,14 +1,19 @@
 import { useEffect, useState } from "react";
 import { formatCurrency } from "@/hooks/useCart";
 import type { CartItem } from "@/hooks/useCart";
+import type { CreateOrderPayload } from "@/types/order.types";
+
 import { User, CreditCard, MapPin, Loader } from "lucide-react";
+
+import { createOrder, getOrdersByGuestId, getAllOrders } from "@/services/order-service";
+import { getOrCreateGuestId } from "@/lib/utils";
 
 interface OrderModalProps {
   open: boolean;
   onClose: () => void;
   total: number;
   orden: CartItem[];
-  envio: "delivery" | "pickup" | null;
+  envio: "delivery" | "pickup";
 }
 
 const PAYMENT_METHODS = [
@@ -46,6 +51,13 @@ export default function OrderModal({
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
 
+  const handleGetOrder = async () => {
+    const orders = await getOrdersByGuestId(getOrCreateGuestId());
+    const TODO = await getAllOrders();
+    console.log("TODAS LAS ORDENES", TODO);
+    console.log(orders);
+  };
+
   // Al inicio del componente, junto al resto de estados
   const [customerName, setCustomerName] = useState<Customer>(() => {
     if (typeof window === "undefined") return { name: "", phone: "" };
@@ -72,11 +84,11 @@ export default function OrderModal({
     details: item.items ?? [],
   }));
 
-  const payload = {
+  const payload: CreateOrderPayload = {
     guestId: getOrCreateGuestId(),
     customerName: customerName.name,
     phone: customerName.phone,
-    paymentMethod: selectedPayment,
+    paymentMethod: selectedPayment ?? "yape",
     deliveryType: envio,
     latitude: latitude,
     longitude: longitude,
@@ -84,14 +96,6 @@ export default function OrderModal({
     total: total,
     items: payloadOrden,
   };
-
-  function getOrCreateGuestId(): string {
-    const existing = localStorage.getItem("guestId");
-    if (existing) return existing;
-    const newId = crypto.randomUUID();
-    localStorage.setItem("guestId", newId);
-    return newId;
-  }
 
   // Función para obtener ubicación actual
   const handleGetCurrentLocation = async () => {
@@ -204,7 +208,8 @@ export default function OrderModal({
     onClose();
   };
 
-  const enviarPedido = () => {
+  const enviarPedido = async () => {
+    await createOrder(payload);
     // console.warn("Enviando pedido");
     // console.log("Total:", total);
     // console.log("Método de pago:", selectedPayment);
@@ -240,6 +245,12 @@ export default function OrderModal({
             >
               Datos
             </span>
+            <button
+              onClick={() => handleGetOrder()}
+              className="text-xs font-medium whitespace-nowrap text-white/30"
+            >
+              HAZME CLICKCKCKCKC
+            </button>
           </div>
 
           <div className="h-px w-8 bg-white/10 shrink-0" />
