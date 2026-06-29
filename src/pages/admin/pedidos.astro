@@ -1,0 +1,10 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import { PedidosApp } from "@/components/pages/PedidosApp";
+---
+
+<Layout>
+  <Header />
+  <PedidosApp client:load />
+</Layout>
