@@ -20,7 +20,7 @@ export function PedidosApp() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-50">
+      <div className="grid place-content-center min-h-screen">
         <div className="flex flex-col items-center gap-3 text-[#b4a58c]">
           <span className="w-8 h-8 border-2 border-[#2a2520] border-t-[#c9973a] rounded-full animate-spin" />
           <p className="text-sm">Cargando pedidos...</p>
@@ -47,7 +47,7 @@ export function PedidosApp() {
 
   return (
     <div className="mx-auto px-4 py-10 sm:px-6 lg:px-8 text-white">
-      <header className="pb-6 pt-20">
+      <header className="pb-6">
         <p className="mb-3 text-xs uppercase tracking-[0.25em] text-(--gold)">
           Pedidos
         </p>

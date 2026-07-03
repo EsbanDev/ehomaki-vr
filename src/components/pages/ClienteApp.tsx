@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getOrdersByGuestId } from "@/services/order-service";
 import { getOrCreateGuestId } from "@/lib/utils";
 import type { Order } from "@/types/order.types";
+import { PackageOpen } from "lucide-react";
 import { BillModal } from "@/components/modals/bill-modal";
 import { STATUS_LABELS } from "@/const/columns-orders";
 
@@ -21,7 +22,7 @@ export function ClienteApp() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-50">
+      <div className="flex items-center justify-center min-h-screen">
         <div className="flex flex-col items-center gap-3 text-[#b4a58c]">
           <span className="w-8 h-8 border-2 border-[#2a2520] border-t-[#c9973a] rounded-full animate-spin" />
           <p className="text-sm">Cargando pedidos...</p>
@@ -32,7 +33,7 @@ export function ClienteApp() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-50">
+      <div className="flex items-center justify-center min-h-screen">
         <p className="text-sm text-[#d63031]">{error}</p>
       </div>
     );
@@ -40,8 +41,23 @@ export function ClienteApp() {
 
   if (orders.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-50">
-        <p className="text-sm text-[#b4a58c]">No tienes pedidos aún.</p>
+      <div className="flex items-center justify-center min-h-screen px-4">
+        <div className="flex flex-col items-center text-center gap-4 max-w-xs">
+          <div className="w-20 h-20 rounded-full bg-(--gold)/10 flex items-center justify-center">
+            <PackageOpen
+              className="w-10 h-10 text-(--gold)/50"
+              strokeWidth={1.5}
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <p className="text-sm font-medium text-(--faf7f2,#faf7f2)/80">
+              Aún no tienes pedidos
+            </p>
+            <p className="text-xs text-(--gold-light)/80">
+              Cuando hagas uno, aparecerá por acá.
+            </p>
+          </div>
+        </div>
       </div>
     );
   }
