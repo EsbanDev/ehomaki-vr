@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ORDER_SUCCESS_EVENT } from "@/components/modals/order-success";
 
 export interface ComboItemDetail {
     name: string;
@@ -50,6 +51,15 @@ export function useCart() {
     const totalItems = items.length
 
     return { items, isHydrated, subtotal, totalItems };
+}
+
+export function deleteCart() {
+    // Limpiar carrito del localStorage
+    localStorage.removeItem(CART_STORAGE_KEY);
+    
+    // Disparar eventos para sincronizar toda la app
+    window.dispatchEvent(new Event(CART_EVENT));
+    window.dispatchEvent(new Event(ORDER_SUCCESS_EVENT));
 }
 
 export function formatCurrency(value: number) {

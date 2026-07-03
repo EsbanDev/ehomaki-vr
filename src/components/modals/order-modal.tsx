@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { formatCurrency } from "@/hooks/useCart";
+import { formatCurrency, deleteCart } from "@/hooks/useCart";
 import type { CartItem } from "@/hooks/useCart";
 import type { CreateOrderPayload } from "@/types/order.types";
 
 import { User, CreditCard, MapPin, Loader } from "lucide-react";
 
-import { createOrder, getOrdersByGuestId, getAllOrders } from "@/services/order-service";
+import { createOrder } from "@/services/order-service";
 import { getOrCreateGuestId } from "@/lib/utils";
 
 interface OrderModalProps {
@@ -50,13 +50,6 @@ export default function OrderModal({
   const [longitude, setLongitude] = useState<number | null>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
-
-  const handleGetOrder = async () => {
-    const orders = await getOrdersByGuestId(getOrCreateGuestId());
-    const TODO = await getAllOrders();
-    console.log("TODAS LAS ORDENES", TODO);
-    console.log(orders);
-  };
 
   // Al inicio del componente, junto al resto de estados
   const [customerName, setCustomerName] = useState<Customer>(() => {
@@ -210,15 +203,7 @@ export default function OrderModal({
 
   const enviarPedido = async () => {
     await createOrder(payload);
-    // console.warn("Enviando pedido");
-    // console.log("Total:", total);
-    // console.log("Método de pago:", selectedPayment);
-    // console.log("Nombre del cliente:", customerName);
-    // console.log("Envio:", envio);
-    // console.log("Guest ID:", getOrCreateGuestId());
-    // console.log(payload);
-
-    handleClose();
+    deleteCart(); // Limpiar el carrito después de enviar
   };
 
   return (
@@ -245,12 +230,6 @@ export default function OrderModal({
             >
               Datos
             </span>
-            <button
-              onClick={() => handleGetOrder()}
-              className="text-xs font-medium whitespace-nowrap text-white/30"
-            >
-              HAZME CLICKCKCKCKC
-            </button>
           </div>
 
           <div className="h-px w-8 bg-white/10 shrink-0" />
