@@ -105,6 +105,7 @@
   --border: #2a2520;
   --gold: #c9973a;
   --gold-light: #e8b84b;
+  --gold-lighter: #e3cc95;
   --red: #d63031;
   --red-glow: rgba(214, 48, 49, 0.25);
   --cream: #f5efe6;
@@ -274,13 +275,6 @@ html.high-contrast {
   transform: translateY(-1px);
 }
 
-.whatsapp-note {
-  margin-top: 0.75rem;
-  font-size: 0.65rem;
-  color: var(--muted);
-  text-align: center;
-  line-height: 1.5;
-}
 .toast {
   position: fixed;
   bottom: 2rem;
@@ -304,6 +298,7 @@ html.high-contrast {
 }
 .cart-item {
   display: grid;
+  margin-bottom: 10px;
   grid-template-columns: 76px minmax(0, 1fr) auto;
   gap: 0.9rem;
   padding: 0.9rem;
@@ -477,9 +472,6 @@ nav {
 }
 
 /* Accessibility Panel Styles */
-.accessibility-options {
-  padding: 1rem 0;
-}
 
 .accessibility-description {
   font-size: 0.85rem;
@@ -491,11 +483,9 @@ nav {
 .filter-options {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 1rem;
 }
 
 .filter-option {
-  display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.75rem;

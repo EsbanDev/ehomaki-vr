@@ -9,6 +9,7 @@ interface CartaItemProps {
   item: {
     nombre: string;
     ingredientes: string;
+    slug: string;
     img: string;
     price?: number;
     pieces?: number;
@@ -93,7 +94,7 @@ export function CartaItem({ cat, item, isComplement }: CartaItemProps) {
         {!isComplement && (
           <div className="flex flex-col gap-2 lg:hidden">
             <button
-              onClick={() => handleAddToCart(`${cat.id}-${item.nombre}-10`, `${item.nombre} - 10 piezas`, 25, item.img)}
+              onClick={() => handleAddToCart(`${item.slug}-10`, `${item.nombre} - 10 piezas`, 25, item.img)}
               className="group flex items-center justify-between rounded-xl bg-[#c89b3c] px-4 py-3 text-black"
             >
               <div className="text-left">
@@ -110,7 +111,7 @@ export function CartaItem({ cat, item, isComplement }: CartaItemProps) {
             </button>
 
             <button
-              onClick={() => handleAddToCart(`${cat.id}-${item.nombre}-6`, `${item.nombre} - 6 piezas`, 18, item.img)}
+              onClick={() => handleAddToCart(`${item.slug}-6`, `${item.nombre} - 6 piezas`, 18, item.img)}
               className="group flex items-center justify-between rounded-xl bg-[#1a1a1a] px-4 py-3 text-[#f3e7d3]"
             >
               <div className="text-left">
@@ -130,7 +131,7 @@ export function CartaItem({ cat, item, isComplement }: CartaItemProps) {
         {isComplement && (
           <div className="flex flex-col gap-2 lg:hidden">
             <button
-              onClick={() => handleAddToCart(`${cat.id}-${item.nombre}`, item.nombre, item.price || 0, item.img)}
+              onClick={() => handleAddToCart(`${item.slug}`, item.nombre, item.price || 0, item.img)}
               className="group flex items-center justify-between rounded-xl bg-[#c89b3c] px-4 py-3 text-black"
             >
               <div className="text-left">
@@ -162,7 +163,7 @@ export function CartaItem({ cat, item, isComplement }: CartaItemProps) {
             <button
               className="rounded-xl border border-[#c89b3c]/30 bg-[#18130d] px-3 py-3 text-left
             transition-all hover:border-[#c89b3c] hover:bg-[#20180f]"
-              onClick={() => handleAddToCart(`${cat.id}-${item.nombre}-10`, `${item.nombre} - 10 piezas`, 25, item.img)}
+              onClick={() => handleAddToCart(`${item.slug}-10`, `${item.nombre} - 10 piezas`, 25, item.img)}
             >
               <div className="text-[11px] uppercase tracking-widest text-[#c89b3c]">
                 Ordenar
@@ -178,7 +179,7 @@ export function CartaItem({ cat, item, isComplement }: CartaItemProps) {
             <button
               className="rounded-xl border border-[#c89b3c]/30 bg-[#18130d] px-3 py-3 text-left
             transition-all hover:border-[#c89b3c] hover:bg-[#20180f]"
-              onClick={() => handleAddToCart(`${cat.id}-${item.nombre}-6`, `${item.nombre} - 6 piezas`, 18, item.img)}
+              onClick={() => handleAddToCart(`${item.slug}-6`, `${item.nombre} - 6 piezas`, 18, item.img)}
             >
               <div className="text-[11px] uppercase tracking-widest text-[#c89b3c]">
                 Ordenar
@@ -200,7 +201,7 @@ export function CartaItem({ cat, item, isComplement }: CartaItemProps) {
           <button
             className="rounded-xl border border-[#c89b3c]/30 bg-[#18130d] px-3 py-3 text-left
             transition-all hover:border-[#c89b3c] hover:bg-[#20180f]"
-            onClick={() => handleAddToCart(`${cat.id}-${item.nombre}`, item.nombre, item.price || 0, item.img)}
+            onClick={() => handleAddToCart(`${item.slug}`, item.nombre, item.price || 0, item.img)}
           >
             <div className="text-[11px] uppercase tracking-widest text-[#c89b3c]">
               Ordenar

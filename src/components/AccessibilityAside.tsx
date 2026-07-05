@@ -139,12 +139,17 @@ export default function AccessibilityAside({
 
       <div className="cart-items">
         <div className="accessibility-options">
+          <div className="flex gap-2 mx-auto p-4 bg-black/30 rounded-lg w-fit mb-4">
+            {["red", "green", "blue"].map((c) => (
+              <div key={c} className={`color-circle ${c}`} />
+            ))}
+          </div>
           <p className="accessibility-description">
             Selecciona un filtro de daltonismo para adaptar los colores de la
             página:
           </p>
 
-          <div className="filter-options">
+          <div className="gap-4 filter-options">
             {FILTERS.map(({ id, label, description }) => (
               <button
                 key={id}
@@ -154,11 +159,6 @@ export default function AccessibilityAside({
                 aria-label={description}
                 aria-pressed={selectedFilter === id}
               >
-                <div className={`filter-preview ${id}`}>
-                  {["red", "green", "blue"].map((c) => (
-                    <div key={c} className={`color-circle ${c}`} />
-                  ))}
-                </div>
                 <span>{label}</span>
               </button>
             ))}
@@ -186,7 +186,7 @@ export default function AccessibilityAside({
             )}
             <button
               type="button"
-              className={`filter-option ${isReadingMaskActive ? "active" : ""}`}
+              className={`filter-option hidden lg:flex ${isReadingMaskActive ? "active" : ""}`}
               onClick={handleReadingMaskToggle}
               aria-label="Activar máscara de lectura"
               aria-pressed={isReadingMaskActive}
@@ -196,7 +196,7 @@ export default function AccessibilityAside({
             </button>
             <button
               type="button"
-              className={`filter-option ${isReducedMotion ? "active" : ""}`}
+              className={`filter-option flex ${isReducedMotion ? "active" : ""}`}
               onClick={() => setIsReducedMotion(!isReducedMotion)}
               aria-pressed={isReducedMotion}
               aria-label="Reducir animaciones"
@@ -206,7 +206,7 @@ export default function AccessibilityAside({
             </button>
             <button
               type="button"
-              className={`filter-option ${isHighContrast ? "active" : ""}`}
+              className={`filter-option flex ${isHighContrast ? "active" : ""}`}
               onClick={() => setIsHighContrast(!isHighContrast)}
               aria-pressed={isHighContrast}
               aria-label="Activar alto contraste"
@@ -216,7 +216,7 @@ export default function AccessibilityAside({
             </button>
             <button
               type="button"
-              className={`filter-option flex-col gap-1 ${fontSize > 0 ? "active" : ""}`}
+              className={`filter-option flex flex-col gap-1 ${fontSize > 0 ? "active" : ""}`}
               onClick={() => setFontSize((i) => (i + 1) % FONT_SIZES.length)}
               aria-label={`Tamaño de texto: ${FONT_SIZES[fontSize].value}%`}
               aria-pressed={fontSize > 0}

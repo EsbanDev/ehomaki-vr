@@ -27,9 +27,9 @@ export default function CartApp({ handleCloseCart }: { handleCloseCart: any }) {
 
   useEffect(() => {
     const handleAddToCartEvent = (event: Event) => {
-      const { id, name, price, img } = (event as CustomEvent).detail;
+      const { id, name, price, img, items } = (event as CustomEvent).detail;
       // 👇 store.add persiste y devuelve el array actualizado
-      const updated = cartStore.add({ id, name, price, img });
+      const updated = cartStore.add({ id, name, price, img, items });
       setCart(updated);
       showToast(`${name} agregado ✓`);
     };
@@ -75,9 +75,9 @@ export default function CartApp({ handleCloseCart }: { handleCloseCart: any }) {
             </a>
           </div>
         ) : (
-          cart.map((item) => (
+          cart.map((item, index) => (
             <CartItem
-              key={item.id}
+              key={`${item.id}-${index}`}
               item={item}
               onRemove={handleRemove}
               onIncrement={handleIncrement}
@@ -92,44 +92,83 @@ export default function CartApp({ handleCloseCart }: { handleCloseCart: any }) {
         id="cartFooter"
         style={{ display: cart.length === 0 ? "none" : "block" }}
       >
-        <div className="flex justify-between mb-2 text-[0.8rem] text-muted">
-          <span>Subtotal</span>
-          <span>{formatCurrency(subtotal)}</span>
+        <div className="flex justify-between items-baseline mb-6">
+          <span className="text-[0.75rem] tracking-[0.15em] uppercase text-muted">
+            Subtotal
+          </span>
+          <span className="font-['Bebas_Neue',sans-serif] text-[2rem] text-(--gold)">
+            {formatCurrency(subtotal)}
+          </span>
         </div>
-        <div className="flex justify-between mb-2 text-[0.8rem] text-muted">
-          <span>Delivery (a confirmar)</span>
-          <span>—</span>
-        </div>
-        <div className="flex justify-between items-baseline mb-6 pt-3 border-t border-border">
-          <span className="text-[0.75rem] tracking-[0.15em] uppercase text-muted">Total</span>
-          <span className="font-['Bebas_Neue',sans-serif] text-[2rem] text-(--gold)">{formatCurrency(subtotal)}</span>
-        </div>
+        <a
+          href="/carrito"
+          className="
+    group
+    inline-flex w-full items-center justify-center gap-2
+
+    rounded-full
+    bg-(--gold)
+
+    px-6 py-4
+
+    text-sm font-bold uppercase tracking-[0.18em]
+    text-black
+
+    transition-all duration-300
+
+    hover:-translate-y-1
+    hover:bg-[#dfaa4c]
+    hover:shadow-[0_10px_30px_rgba(200,155,60,0.3)]
+
+    active:translate-y-0
+  "
+        >
+          Continuar
+          <span className="transition-transform duration-300 group-hover:translate-x-1">
+            →
+          </span>
+        </a>
         <button
           type="button"
-          className="checkout-btn"
+          className="group mx-auto mt-5 text-sm flex font-medium tracking-[0.08em] text-white/70 
+          transition-all duration-300 cursor-pointer
+          hover:text-(--gold)"
           id="checkoutBtn"
           aria-label="Enviar pedido por WhatsApp"
           onClick={() => {
             if (cart.length === 0) return;
+
             const lines = cart
-              .map(
-                (item) =>
-                  `• ${item.name} x${item.qty} — S/ ${(item.price * item.qty).toFixed(2)}`,
-              )
-              .join("\n");
+              .map((item) => {
+                const subItems = item.items?.length
+                  ? "\n" +
+                    item.items
+                      .map((i) => `   ◦ ${i.name} x${i.quantity}`)
+                      .join("\n")
+                  : "";
+
+                return `• ${item.name} x${item.qty} — S/ ${(item.price * item.qty).toFixed(2)}${subItems}`;
+              })
+              .join("\n\n");
+
             const total = subtotal.toFixed(2);
-            const msg = `¡Hola! Quiero hacer el siguiente pedido:\n\n${lines}\n\n*Total: S/ ${total}*\n\n¿Pueden confirmar disponibilidad y costo de delivery? 🍣`;
+
+            const msg = `¡Hola! Quiero hacer el siguiente pedido:
+
+${lines}
+
+*Total: S/ ${total}*
+
+¿Pueden confirmar disponibilidad y costo de delivery?`;
+
             window.open(
               `https://wa.me/51941442899?text=${encodeURIComponent(msg)}`,
               "_blank",
             );
           }}
         >
-          Pedir por WhatsApp →
+          Continuar por WhatsApp →
         </button>
-        <p className="whatsapp-note">
-          Te redirigiremos a WhatsApp con tu pedido listo para enviar.
-        </p>
       </div>
     </>
   );

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import * as THREE from "three";
 import { DISHES } from "@/const/experienciaDishes";
 import type { Dish } from "@/types/experienciaVR";
-import "./ExperienciaVR.css";
+import "@/styles/ExperienciaVR.css"
 
 /**
  * <ExperienciaVR />

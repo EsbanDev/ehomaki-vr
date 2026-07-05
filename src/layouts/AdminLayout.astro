@@ -1,0 +1,50 @@
+---
+import "@/styles/global.css";
+import "@fontsource/dm-sans";
+
+import AccesibilityApp from "@/components/ui/accesibility-app.astro";
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/sushi-icon.svg" />
+    <title>Ehomakis Sushi Bar</title>
+  </head>
+  <body>
+    <main>
+      <slot />
+    </main>
+  </body>
+  <AccesibilityApp />
+</html>
+
+<style>
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: "DM Sans", sans-serif;
+    font-weight: 300;
+    overflow-x: hidden;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+</style>

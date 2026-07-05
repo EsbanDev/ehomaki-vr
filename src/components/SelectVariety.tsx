@@ -10,6 +10,7 @@ interface Variety {
 interface SelectVarietyProps {
   varietiesCount: number;
   allVarieties: Variety[];
+  comboId: string;
   name: string;
   comboPrice?: number;
   comboImg?: string;
@@ -18,6 +19,7 @@ interface SelectVarietyProps {
 export function SelectVariety({
   varietiesCount,
   allVarieties,
+  comboId,
   name,
   comboPrice,
   comboImg,
@@ -155,6 +157,7 @@ export function SelectVariety({
         disabled={totalCount !== varietiesCount}
         isSticky={true}
         combo={comboDone}
+        comboId={comboId}
         comboPrice={comboPrice}
         comboImg={comboImg}
       />
