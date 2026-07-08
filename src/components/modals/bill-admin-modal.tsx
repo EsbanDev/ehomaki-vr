@@ -1,6 +1,7 @@
-import { useState } from "react";
-import type { Order } from "@/types/order.types";
-import { STATUS_LABELS } from "@/const/columns-orders";
+import { useState, useEffect } from "react";
+import type { Order, OrderStatus } from "@/types/order.types";
+import { useAddressLink } from "@/hooks/useAddress";
+import { updateOrderStatus } from "@/services/order-service";
 
 interface OrderModalProps {
   order: Order | null;
@@ -66,15 +67,41 @@ function ItemRow({ item }: { item: Order["items"][number] }) {
   );
 }
 
-const STATUS_COLORS: Record<string, string> = {
-  pending: "bg-[#e8b84b]/20 text-[#e8b84b]",
-  confirmed: "bg-[#4a90e2]/20 text-[#4a90e2]",
-  preparing: "bg-[#f5a623]/20 text-[#f5a623]",
-  ready: "bg-[#27ae60]/20 text-[#27ae60]",
-  delivered: "bg-[#b4a58c]/20 text-[#b4a58c]",
-};
+export function BillAdminModal({ order, isVisible, onClose }: OrderModalProps) {
+  const addressLink = useAddressLink(order ?? ({} as Order));
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState<keyof OrderStatus>(
+    order?.status ?? "pending",
+  );
 
-export function BillModal({ order, isVisible, onClose }: OrderModalProps) {
+  // Sincronizar el estado local cuando cambie el pedido
+  useEffect(() => {
+    if (order?.status) {
+      setSelectedStatus(order.status);
+    }
+  }, [order?.status]);
+
+  const handleStatusChange = async (
+    e: React.ChangeEvent<HTMLSelectElement>,
+  ) => {
+    if (!order) return;
+
+    const previousStatus = selectedStatus;
+    const newStatus = e.target.value as keyof OrderStatus;
+
+    setSelectedStatus(newStatus);
+    setIsUpdatingStatus(true);
+
+    try {
+      await updateOrderStatus(order.id, newStatus);
+    } catch (error) {
+      console.error("Error al actualizar el estado:", error);
+      setSelectedStatus(previousStatus);
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
   if (!isVisible || !order) return null;
 
   return (
@@ -85,22 +112,39 @@ export function BillModal({ order, isVisible, onClose }: OrderModalProps) {
       >
         {/* Header */}
         <div className="flex items-start justify-between px-6 py-4 border-b border-[#2a2520]">
-          <div className="flex flex-col gap-1">
-            <h2 className="text-lg font-semibold text-[#faf7f2]">
-              {order.customer_name}
-            </h2>
+          <div className="flex flex-col gap-2">
+            <div className="flex gap-3 items-center">
+              <h2 className="text-lg font-semibold text-[#faf7f2]">
+                {order.customer_name}
+              </h2>
+              <select
+                value={selectedStatus}
+                onChange={handleStatusChange}
+                disabled={isUpdatingStatus}
+                className="
+                  w-fit px-3 py-1.5 rounded-lg border border-[#2a2520] bg-[#161410]
+                  text-[#faf7f2] text-sm transition-colors
+                  focus:outline-none focus:border-(--gold)
+                  disabled:cursor-not-allowed disabled:opacity-50
+                  cursor-pointer
+                "
+              >
+                <option value="pending">Pendiente</option>
+                <option value="confirmed">Confirmado</option>
+                <option value="preparing">Preparando</option>
+                <option value="ready">Listo</option>
+                <option value="delivered">Entregado</option>
+              </select>
+            </div>
             <p className="text-xs text-[#b4a58c]">
-              {new Date(order.created_at).toLocaleDateString('es-PE', { weekday: 'short', day: 'numeric', month: 'short' })}
+              {new Date(order.created_at).toLocaleDateString("es-PE", {
+                weekday: "short",
+                day: "numeric",
+                month: "short",
+              })}
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <span
-              className={`text-xs px-3 py-1 rounded-full font-medium ${
-                STATUS_COLORS[order.status] ?? "bg-[#2a2520] text-[#b4a58c]"
-              }`}
-            >
-              {STATUS_LABELS[order.status] ?? order.status}
-            </span>
             <button
               onClick={onClose}
               className="text-[#b4a58c] hover:text-[#faf7f2] transition-colors"
@@ -131,7 +175,14 @@ export function BillModal({ order, isVisible, onClose }: OrderModalProps) {
             </h3>
             <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
               <span className="text-[#b4a58c]">Teléfono</span>
-              <span className="text-[#faf7f2]">{order.phone}</span>
+              <a
+                href={`https://wa.me/51${order.phone.replace(/\D/g, "")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-(--gold) hover:text-(--gold-light) transition-colors underline underline-offset-2 decoration-[#c9973a]/30 hover:decoration-[#e8b84b]/50 w-fit"
+              >
+                {order.phone}
+              </a>
 
               <span className="text-[#b4a58c]">Pago</span>
               <span className="text-[#faf7f2] capitalize">
@@ -144,6 +195,24 @@ export function BillModal({ order, isVisible, onClose }: OrderModalProps) {
                   ? "Retiro en tienda"
                   : "Entrega a domicilio"}
               </span>
+
+              {(order.address || addressLink) && (
+                <>
+                  <span className="text-[#b4a58c]">Dirección</span>
+                  {addressLink ? (
+                    <a
+                      href={addressLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-(--gold) hover:text-(--gold-light) transition-colors underline underline-offset-2 decoration-[#c9973a]/30 hover:decoration-[#e8b84b]/50"
+                    >
+                      {order.address ?? "Ver en mapa"}
+                    </a>
+                  ) : (
+                    <span className="text-[#faf7f2]">{order.address}</span>
+                  )}
+                </>
+              )}
             </div>
           </section>
 
