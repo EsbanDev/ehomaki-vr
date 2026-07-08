@@ -44,7 +44,7 @@ export interface Order {
     longitude: number | null;
     total: number;
     status: keyof OrderStatus;
-    createdAt: string;
+    created_at: string;
     items: OrderItem[];
 }
 
