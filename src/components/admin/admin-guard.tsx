@@ -6,7 +6,7 @@ import {
 } from "@/services/auth-service";
 import LoginForm from "./login-form";
 import { PedidosApp } from "@/components/pages/PedidosApp";
-import { LogOut } from "lucide-react";
+import { LogOut, ArrowLeft } from "lucide-react";
 
 export default function AdminGuard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -43,11 +43,12 @@ export default function AdminGuard() {
   return (
     <div>
       <div className="flex items-center justify-between border-b border-white/5 px-6 py-4">
-        <a href="/" className="flex flex-col">
-          <span className="text-xs tracking-wider text-(--gold) uppercase mb-2">
-            鮨 ✦ Lima, Perú
-          </span>
-          <span className="text-2xl text-white">Ehomakis</span>
+        <a
+          href="/"
+          className="group flex items-center gap-2 rounded-full border border-(--gold) bg-white/10 px-3 py-1 transition-all duration-300 hover:bg-(--gold)/15 hover:shadow-lg"
+        >
+          <ArrowLeft className="h-4 w-4 transition-transform duration-300" />
+          <span>Volver al inicio</span>
         </a>
         <button
           type="button"
