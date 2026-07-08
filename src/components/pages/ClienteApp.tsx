@@ -1,16 +1,27 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { getOrdersByGuestId } from "@/services/order-service";
 import { getOrCreateGuestId } from "@/lib/utils";
 import type { Order } from "@/types/order.types";
 import { PackageOpen } from "lucide-react";
 import { BillModal } from "@/components/modals/bill-modal";
 import { STATUS_LABELS } from "@/const/columns-orders";
+import { StatusModal } from "@/components/modals/status-modal";
+
+type DateFilter = "today" | "all";
+
+const DATE_FILTERS: { key: DateFilter; label: string }[] = [
+  { key: "today", label: "Hoy" },
+  { key: "all", label: "Todos" },
+];
 
 export function ClienteApp() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showBill, setShowBill] = useState(false);
+  const [showStatus, setShowStatus] = useState(false);
+  const [dateFilter, setDateFilter] = useState<DateFilter>("today");
   const guestId = getOrCreateGuestId();
 
   useEffect(() => {
@@ -19,6 +30,50 @@ export function ClienteApp() {
       .catch(() => setError("No se pudieron cargar los pedidos."))
       .finally(() => setLoading(false));
   }, [guestId]);
+
+  function isSameDay(date: Date, reference: Date): boolean {
+    return (
+      date.getFullYear() === reference.getFullYear() &&
+      date.getMonth() === reference.getMonth() &&
+      date.getDate() === reference.getDate()
+    );
+  }
+
+  function filterOrdersByDate(orders: Order[], filter: DateFilter): Order[] {
+    if (filter === "all") return orders;
+
+    const now = new Date();
+
+    return orders.filter((order) => {
+      const createdAt = new Date(order.created_at);
+      return filter === "today" && isSameDay(createdAt, now);
+    });
+  }
+
+  const filteredOrders = useMemo(
+    () => filterOrdersByDate(orders, dateFilter),
+    [orders, dateFilter],
+  );
+
+  const handleShowBill = (order: Order) => {
+    setSelectedOrder(order);
+    setShowBill(true);
+  };
+
+  const handleShowStatus = (order: Order) => {
+    setSelectedOrder(order);
+    setShowStatus(true);
+  };
+
+  const handleCloseBill = () => {
+    setShowBill(false);
+    setSelectedOrder(null);
+  };
+
+  const handleCloseStatus = () => {
+    setShowStatus(false);
+    setSelectedOrder(null);
+  };
 
   if (loading) {
     return (
@@ -63,7 +118,7 @@ export function ClienteApp() {
   }
   return (
     <>
-      <div className="mx-auto px-4 py-10 sm:px-6 lg:px-8 text-[#faf7f2]">
+      <div className="mx-auto px-4 py-10 sm:px-6 lg:px-8 text-[#faf7f2] min-h-screen">
         <header className="pb-6 pt-20">
           <p className="mb-3 text-xs uppercase tracking-[0.25em] text-[#c9973a]">
             Pedidos
@@ -74,23 +129,50 @@ export function ClienteApp() {
           </h1>
 
           <div className="mt-4 h-1 w-20 rounded-full bg-[#c9973a]" />
+          <div className="mt-6 flex gap-2">
+            {DATE_FILTERS.map((filter) => (
+              <button
+                key={filter.key}
+                type="button"
+                onClick={() => setDateFilter(filter.key)}
+                className={`
+                rounded-full px-4 py-2 text-sm font-medium transition-colors
+                ${
+                  dateFilter === filter.key
+                    ? "bg-(--gold) text-black"
+                    : "border border-[#2a2520] bg-[#161410] text-[#b4a58c] hover:border-(--gold)/40"
+                }
+              `}
+              >
+                {filter.label}
+              </button>
+            ))}
+          </div>
         </header>
         <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {orders.map((order) => (
+          {filteredOrders.map((order) => (
             <li
               key={order.id}
-              className="rounded-xl border border-[#2a2520] bg-[#161410] p-4 shadow-sm hover:border-[#c9973a]/30 transition-colors cursor-pointer h-50 flex flex-col"
-              onClick={() => setSelectedOrder(order)}
+              className="rounded-xl border border-[#2a2520] bg-[#161410] p-4 shadow-sm hover:border-[#c9973a]/30 transition-colors h-50 flex flex-col"
             >
-              <header className="flex items-center justify-between mb-4">
-                <span className="text-sm font-medium text-[#faf7f2]">
+              <header className="flex items-center justify-between mb-6">
+                <span
+                  className="text-sm font-medium text-[#faf7f2] cursor-pointer"
+                  onClick={() => handleShowBill(order)}
+                >
                   {order.customer_name}
                 </span>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-[#2a2520] text-[#c9973a] capitalize font-medium">
+                <span
+                  className={`text-xs px-2 py-0.5 rounded-full bg-[#2a2520] text-[#c9973a] capitalize font-medium cursor-pointer border border-[#c9973a]/40 transition-all duration-300 hover:bg-[#c9973a]/10 hover:border-[#c9973a] ${order.status !== 'delivered' ? 'glow-pulse' : ''}`}
+                  onClick={() => handleShowStatus(order)}
+                >
                   {STATUS_LABELS[order.status] || order.status}
                 </span>
               </header>
-              <ul className="flex flex-col gap-1.5 mb-3 max-h-40 overflow-y-auto">
+              <ul
+                className="flex flex-col gap-1.5 mb-3 max-h-40 overflow-y-auto cursor-pointer"
+                onClick={() => handleShowBill(order)}
+              >
                 {order.items.map((item) => (
                   <li key={item.id} className="flex justify-between text-sm">
                     <span className="text-[#faf7f2]/80">
@@ -114,9 +196,15 @@ export function ClienteApp() {
       </div>
       <BillModal
         order={selectedOrder}
-        isVisible={!!selectedOrder}
-        onClose={() => setSelectedOrder(null)}
+        isVisible={showBill}
+        onClose={handleCloseBill}
       />
+      {selectedOrder && showStatus && (
+        <StatusModal
+          status={selectedOrder.status}
+          onClose={handleCloseStatus}
+        />
+      )}
     </>
   );
 }
