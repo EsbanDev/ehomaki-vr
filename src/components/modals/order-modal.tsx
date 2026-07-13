@@ -384,7 +384,7 @@ export default function OrderModal({
                   </svg>
                 </div>
                 <span className="text-sm text-white/50 peer-checked:text-white/70 transition-colors">
-                  Recordar mi nombre para futuros pedidos
+                  Guardar para futuros pedidos
                 </span>
               </label>
             </div>

@@ -183,26 +183,24 @@ export function ClienteApp() {
           {filteredOrders.map((order) => (
             <li
               key={order.id}
-              className="rounded-xl border border-[#2a2520] bg-[#161410] p-4 shadow-sm hover:border-[#c9973a]/30 transition-colors h-50 flex flex-col"
+              className="rounded-xl border border-[#2a2520] bg-[#161410] p-4 shadow-sm hover:border-[#c9973a]/30 transition-colors h-50 flex flex-col cursor-pointer"
+              onClick={() => handleShowBill(order)}
             >
               <header className="flex items-center justify-between mb-6">
-                <span
-                  className="text-sm font-medium text-[#faf7f2] cursor-pointer"
-                  onClick={() => handleShowBill(order)}
-                >
+                <span className="text-sm font-medium text-[#faf7f2]">
                   {order.customer_name}
                 </span>
                 <span
                   className={`text-xs px-2 py-0.5 rounded-full capitalize font-medium cursor-pointer border transition-all duration-300 ${STATUS_STYLES[order.status] || STATUS_STYLES.pending} ${order.status !== "delivered" ? "glow-pulse" : ""}`}
-                  onClick={() => handleShowStatus(order)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleShowStatus(order);
+                  }}
                 >
                   {STATUS_LABELS[order.status] || order.status}
                 </span>
               </header>
-              <ul
-                className="flex flex-col gap-1.5 mb-3 max-h-40 overflow-y-auto cursor-pointer"
-                onClick={() => handleShowBill(order)}
-              >
+              <ul className="flex flex-col gap-1.5 mb-3 max-h-40 overflow-y-auto">
                 {order.items.map((item) => (
                   <li key={item.id} className="flex justify-between text-sm">
                     <span className="text-[#faf7f2]/80">
