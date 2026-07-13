@@ -1,4 +1,4 @@
-import { getAllOrders } from "@/services/order-service";
+import { getAllOrders, subscribeToOrders } from "@/services/order-service";
 import { useEffect, useMemo, useState } from "react";
 import type { Order } from "@/types/order.types";
 import { COLUMNS } from "@/const/columns-orders";
@@ -47,11 +47,36 @@ export function PedidosApp() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [dateFilter, setDateFilter] = useState<DateFilter>("today");
 
+  // useEffect(() => {
+  //   getAllOrders()
+  //     .then(setOrders)
+  //     .catch(() => setError("No se pudieron cargar los pedidos."))
+  //     .finally(() => setLoading(false));
+  // }, []);
+
   useEffect(() => {
     getAllOrders()
       .then(setOrders)
       .catch(() => setError("No se pudieron cargar los pedidos."))
       .finally(() => setLoading(false));
+
+    const unsubscribe = subscribeToOrders((payload) => {
+      if (payload.eventType === "INSERT") {
+        // Nota: el nuevo registro no trae items/details anidados todavía
+        // porque el evento solo entrega la fila de "orders"
+        getAllOrders().then(setOrders);
+      }
+
+      if (payload.eventType === "UPDATE") {
+        setOrders((prev) =>
+          prev.map((order) =>
+            order.id === payload.new.id ? { ...order, ...payload.new } : order,
+          ),
+        );
+      }
+    });
+
+    return unsubscribe;
   }, []);
 
   const filteredOrders = useMemo(

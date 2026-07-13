@@ -1,11 +1,22 @@
 import { useEffect, useState, useMemo } from "react";
-import { getOrdersByGuestId } from "@/services/order-service";
+import {
+  getOrdersByGuestId,
+  subscribeToGuestOrders,
+} from "@/services/order-service";
 import { getOrCreateGuestId } from "@/lib/utils";
 import type { Order } from "@/types/order.types";
 import { PackageOpen } from "lucide-react";
 import { BillModal } from "@/components/modals/bill-modal";
 import { STATUS_LABELS } from "@/const/columns-orders";
 import { StatusModal } from "@/components/modals/status-modal";
+
+const STATUS_STYLES: Record<string, string> = {
+  pending: "bg-[#2a2520] text-[#e8b84b] border-[#e8b84b]/40 hover:bg-[#e8b84b]/10 hover:border-[#e8b84b]",
+  confirmed: "bg-[#2a2520] text-[#4a90e2] border-[#4a90e2]/40 hover:bg-[#4a90e2]/10 hover:border-[#4a90e2]",
+  preparing: "bg-[#2a2520] text-[#f5a623] border-[#f5a623]/40 hover:bg-[#f5a623]/10 hover:border-[#f5a623]",
+  ready: "bg-[#2a2520] text-[#27ae60] border-[#27ae60]/40 hover:bg-[#27ae60]/10 hover:border-[#27ae60]",
+  delivered: "bg-[#2a2520] text-[#b4a58c] border-[#b4a58c]/40 hover:bg-[#b4a58c]/10 hover:border-[#b4a58c]",
+};
 
 type DateFilter = "today" | "all";
 
@@ -24,11 +35,30 @@ export function ClienteApp() {
   const [dateFilter, setDateFilter] = useState<DateFilter>("today");
   const guestId = getOrCreateGuestId();
 
+  // useEffect(() => {
+  //   getOrdersByGuestId(guestId)
+  //     .then(setOrders)
+  //     .catch(() => setError("No se pudieron cargar los pedidos."))
+  //     .finally(() => setLoading(false));
+  // }, [guestId]);
+
   useEffect(() => {
     getOrdersByGuestId(guestId)
       .then(setOrders)
       .catch(() => setError("No se pudieron cargar los pedidos."))
       .finally(() => setLoading(false));
+
+    const unsubscribe = subscribeToGuestOrders(guestId, (updatedOrder) => {
+      setOrders((prev) =>
+        prev.map((order) =>
+          order.id === updatedOrder.id
+            ? { ...order, status: updatedOrder.status }
+            : order,
+        ),
+      );
+    });
+
+    return unsubscribe;
   }, [guestId]);
 
   function isSameDay(date: Date, reference: Date): boolean {
@@ -163,7 +193,7 @@ export function ClienteApp() {
                   {order.customer_name}
                 </span>
                 <span
-                  className={`text-xs px-2 py-0.5 rounded-full bg-[#2a2520] text-[#c9973a] capitalize font-medium cursor-pointer border border-[#c9973a]/40 transition-all duration-300 hover:bg-[#c9973a]/10 hover:border-[#c9973a] ${order.status !== 'delivered' ? 'glow-pulse' : ''}`}
+                  className={`text-xs px-2 py-0.5 rounded-full capitalize font-medium cursor-pointer border transition-all duration-300 ${STATUS_STYLES[order.status] || STATUS_STYLES.pending} ${order.status !== "delivered" ? "glow-pulse" : ""}`}
                   onClick={() => handleShowStatus(order)}
                 >
                   {STATUS_LABELS[order.status] || order.status}
