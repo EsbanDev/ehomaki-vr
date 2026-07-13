@@ -5,7 +5,7 @@ import { createPlateBase } from "./Plate";
 import { createRice } from "./Rice";
 import { createNori } from "./Nori";
 import { createFillings } from "./Fillings";
-import { createToppings } from "./toppings";
+import { createToppings } from "./toppings/index";
 import { createGarnish } from "./Garnish";
 
 export function buildPlate(dish: Dish): THREE.Group {
