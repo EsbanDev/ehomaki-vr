@@ -2,13 +2,13 @@ import * as THREE from "three";
 import type { Dish } from "@/types/experienciaVR";
 
 import { bakeGeometry, mergedMesh } from "../GeometryUtils";
-import { pieceTransform } from "../Layout";
+import { toppingTransform } from "../Layout";
 
 const CRISPY_STRIP_GEO = new THREE.CylinderGeometry(
-    0.003,
-    0.003,
-    0.045,
-    6
+    0.0026,
+    0.0022,
+    0.042,
+    8
 );
 
 export function createCrispy(dish: Dish): THREE.Mesh {
@@ -19,7 +19,11 @@ export function createCrispy(dish: Dish): THREE.Mesh {
 
     for (let i = 0; i < pieces; i++) {
 
-        const transform = pieceTransform(i, pieces);
+        const transform = toppingTransform(
+            dish.id,
+            i,
+            pieces
+        );
 
         for (let j = 0; j < 6; j++) {
 
@@ -28,15 +32,16 @@ export function createCrispy(dish: Dish): THREE.Mesh {
                 bakeGeometry(
                     CRISPY_STRIP_GEO,
                     {
+
                         position: transform.position.clone().add(
 
                             new THREE.Vector3(
 
-                                (Math.random() - 0.5) * 0.03,
+                                (Math.random() - 0.5) * 0.028,
 
-                                0.055 + Math.random() * 0.012,
+                                0.007 + Math.random() * 0.010,
 
-                                (Math.random() - 0.5) * 0.03
+                                (Math.random() - 0.5) * 0.028
 
                             )
 
@@ -53,6 +58,7 @@ export function createCrispy(dish: Dish): THREE.Mesh {
                         )
 
                     }
+
                 )
 
             );
@@ -69,7 +75,9 @@ export function createCrispy(dish: Dish): THREE.Mesh {
 
             color: dish.topping!.color,
 
-            roughness: 0.8
+            roughness: 0.8,
+
+            metalness: 0
 
         })
 

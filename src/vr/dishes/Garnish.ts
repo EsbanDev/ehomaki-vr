@@ -2,7 +2,6 @@ import * as THREE from "three";
 import type { Dish } from "@/types/experienciaVR";
 
 import { bakeGeometry, mergedMesh } from "./GeometryUtils";
-import { pieceTransform } from "./Layout";
 
 const DRIZZLE_SEG_GEO = new THREE.BoxGeometry(
     0.05,
@@ -25,7 +24,7 @@ export function createGarnish(dish: Dish): THREE.Mesh[] {
 
     const meshes: THREE.Mesh[] = [];
 
-    const pieces = 6;
+    const layout = dish.layout;
 
     //
     // Salsa
@@ -34,18 +33,16 @@ export function createGarnish(dish: Dish): THREE.Mesh[] {
 
         const drizzleGeoms: THREE.BufferGeometry[] = [];
 
-        for (let i = 0; i < pieces; i++) {
-
-            const transform = pieceTransform(i, pieces);
+        for (const transform of layout) {
 
             drizzleGeoms.push(
 
                 bakeGeometry(
                     DRIZZLE_SEG_GEO,
                     {
-                        position: transform.position
-                            .clone()
-                            .setY(0.061),
+                        position: transform.position.clone().add(
+                            new THREE.Vector3(0, 0.061, 0)
+                        ),
 
                         rotation: new THREE.Euler(
                             0,
@@ -88,18 +85,16 @@ export function createGarnish(dish: Dish): THREE.Mesh[] {
 
         const herbGeoms: THREE.BufferGeometry[] = [];
 
-        for (let i = 0; i < pieces; i++) {
-
-            const transform = pieceTransform(i, pieces);
+        for (const transform of layout) {
 
             herbGeoms.push(
 
                 bakeGeometry(
                     HERB_GEO,
                     {
-                        position: transform.position
-                            .clone()
-                            .setY(0.064),
+                        position: transform.position.clone().add(
+                            new THREE.Vector3(0, 0.064, 0)
+                        ),
 
                         rotation: new THREE.Euler(
                             -Math.PI / 2,
@@ -140,9 +135,7 @@ export function createGarnish(dish: Dish): THREE.Mesh[] {
 
         const seedGeoms: THREE.BufferGeometry[] = [];
 
-        for (let i = 0; i < pieces; i++) {
-
-            const transform = pieceTransform(i, pieces);
+        for (const transform of layout) {
 
             for (let j = 0; j < 4; j++) {
 

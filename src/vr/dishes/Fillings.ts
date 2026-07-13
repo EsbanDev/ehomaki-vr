@@ -1,13 +1,61 @@
-import * as THREE from "three";
+iimport * as THREE from "three";
 import type { Dish } from "@/types/experienciaVR";
 
 import { bakeGeometry, mergedMesh } from "./GeometryUtils";
-import { pieceTransform } from "./Layout";
+import { fillingTransform } from "./Layout";
 
-const FILL_OUTER_GEO = new THREE.CircleGeometry(0.020, 16);
-const FILL_INNER_GEO = new THREE.CircleGeometry(0.011, 14);
+const FILL_OUTER_GEO = new THREE.CircleGeometry(0.020, 24);
+const FILL_INNER_GEO = new THREE.CircleGeometry(0.011, 20);
 
-export function createFillings(dish: Dish): THREE.Mesh[] {
+function distortCircle(
+    geo: THREE.CircleGeometry,
+    amount: number
+) {
+
+    const pos = geo.attributes.position;
+
+    for (let i = 1; i < pos.count; i++) {
+
+        const x = pos.getX(i);
+        const y = pos.getY(i);
+
+        const angle = Math.atan2(y, x);
+
+        const radius = Math.sqrt(x * x + y * y);
+
+        const noise =
+            Math.sin(angle * 5) * amount +
+            Math.cos(angle * 3) * amount * 0.6;
+
+        const scale = (radius + noise) / radius;
+
+        pos.setXY(
+            i,
+            x * scale,
+            y * scale
+        );
+
+    }
+
+    pos.needsUpdate = true;
+
+    geo.computeVertexNormals();
+
+}
+
+distortCircle(
+    FILL_OUTER_GEO,
+    0.0008
+);
+
+distortCircle(
+    FILL_INNER_GEO,
+    0.0005
+);
+
+export function createFillings(
+    dish: Dish
+): THREE.Mesh[] {
 
     const outerGeoms: THREE.BufferGeometry[] = [];
     const innerGeoms: THREE.BufferGeometry[] = [];
@@ -16,16 +64,52 @@ export function createFillings(dish: Dish): THREE.Mesh[] {
 
     for (let i = 0; i < pieces; i++) {
 
-        const transform = pieceTransform(i, pieces);
+        const transform = fillingTransform(
+            dish.id,
+            i,
+            pieces
+        );
+
+        const offsetX = (Math.random() - 0.5) * 0.0015;
+        const offsetZ = (Math.random() - 0.5) * 0.0015;
+
+        const rotation =
+            (Math.random() - 0.5) * 0.12;
 
         outerGeoms.push(
 
             bakeGeometry(
+
                 FILL_OUTER_GEO,
+
                 {
-                    position: transform.position.clone().setY(0.0226),
-                    rotation: new THREE.Euler(-Math.PI / 2, 0, 0)
+
+                    position: transform.position
+                        .clone()
+                        .add(
+
+                            new THREE.Vector3(
+
+                                offsetX,
+                                0,
+                                offsetZ
+
+                            )
+
+                        ),
+
+                    rotation: new THREE.Euler(
+
+                        -Math.PI / 2,
+
+                        rotation,
+
+                        0
+
+                    )
+
                 }
+
             )
 
         );
@@ -35,11 +119,39 @@ export function createFillings(dish: Dish): THREE.Mesh[] {
             innerGeoms.push(
 
                 bakeGeometry(
+
                     FILL_INNER_GEO,
+
                     {
-                        position: transform.position.clone().setY(0.0228),
-                        rotation: new THREE.Euler(-Math.PI / 2, 0, 0)
+
+                        position: transform.position
+                            .clone()
+                            .add(
+
+                                new THREE.Vector3(
+
+                                    offsetX * 0.5,
+
+                                    0.0002,
+
+                                    offsetZ * 0.5
+
+                                )
+
+                            ),
+
+                        rotation: new THREE.Euler(
+
+                            -Math.PI / 2,
+
+                            rotation,
+
+                            0
+
+                        )
+
                     }
+
                 )
 
             );
@@ -60,7 +172,9 @@ export function createFillings(dish: Dish): THREE.Mesh[] {
 
                 color: dish.fillingColor,
 
-                roughness: 0.5
+                roughness: 0.55,
+
+                metalness: 0
 
             })
 
@@ -80,7 +194,9 @@ export function createFillings(dish: Dish): THREE.Mesh[] {
 
                     color: dish.fillingColor2!,
 
-                    roughness: 0.5
+                    roughness: 0.55,
+
+                    metalness: 0
 
                 })
 
@@ -90,7 +206,11 @@ export function createFillings(dish: Dish): THREE.Mesh[] {
 
     }
 
-    meshes.forEach(mesh => mesh.castShadow = true);
+    meshes.forEach(mesh => {
+
+        mesh.castShadow = true;
+
+    });
 
     return meshes;
 

@@ -2,7 +2,6 @@ import * as THREE from "three";
 import type { Dish } from "@/types/experienciaVR";
 
 import { bakeGeometry, mergedMesh } from "../GeometryUtils";
-import { pieceTransform } from "../Layout";
 
 const SAUCE_CAP_GEO = new THREE.SphereGeometry(
     0.036,
@@ -18,18 +17,17 @@ export function createSauceCap(dish: Dish) {
 
     const geoms: THREE.BufferGeometry[] = [];
 
-    const pieces = 6;
-
-    for (let i = 0; i < pieces; i++) {
-
-        const transform = pieceTransform(i, pieces);
+    for (const transform of dish.layout) {
 
         geoms.push(
 
             bakeGeometry(
                 SAUCE_CAP_GEO,
                 {
-                    position: transform.position.clone().setY(0.021),
+                    position: transform.position.clone().add(
+                        new THREE.Vector3(0, 0.021, 0)
+                    ),
+
                     scale: new THREE.Vector3(
                         1.05,
                         0.4,

@@ -23,7 +23,7 @@ export function buildPlate(dish: Dish): THREE.Group {
     );
 
     group.add(
-        createNori()
+        createNori(dish)
     );
 
     //
