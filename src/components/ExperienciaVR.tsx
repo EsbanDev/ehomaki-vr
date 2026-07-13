@@ -1,8 +1,13 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import * as THREE from "three";
-import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { DISHES } from "@/const/experienciaDishes";
 import type { Dish } from "@/types/experienciaVR";
+import { buildPlate } from "@/vr/dishes/MakiGenerator";
+import {
+    bakeGeometry,
+    mergedMesh
+} from "@/vr/dishes/GeometryUtils";
+import { buildPlate } from "@/vr/dishes/MakiGenerator";
 import "@/styles/ExperienciaVR.css";
 
 /**
@@ -106,37 +111,6 @@ export default function ExperienciaVR() {
     }
     resize();
     window.addEventListener("resize", resize);
-
-    /* ---------------- OPTIMIZACIÓN: fusión de geometría ----------------
-     * Three.js emite un "draw call" por cada Mesh individual. Esta escena
-     * tenía decenas de mallas diminutas (guarniciones, costillas de faroles,
-     * barras de paneles, hojas de bambú, etc.) que se ven idénticas si en
-     * vez de N mallas separadas del mismo material se fusiona su geometría
-     * en UNA sola malla. Visualmente es indistinguible; en CPU es mucho
-     * más barato. `bakeGeometry` clona una geometría y le "hornea" su
-     * transform final (posición/rotación/escala) directamente en los
-     * vértices, para que luego se pueda fusionar con otras vía
-     * `mergeGeometries` sin perder su ubicación relativa.
-     */
-    function bakeGeometry(
-      geo: THREE.BufferGeometry,
-      opts: { position?: THREE.Vector3; rotation?: THREE.Euler; scale?: THREE.Vector3 } = {}
-    ) {
-      const g = geo.clone();
-      const q = new THREE.Quaternion();
-      if (opts.rotation) q.setFromEuler(opts.rotation);
-      const m = new THREE.Matrix4().compose(
-        opts.position ?? new THREE.Vector3(),
-        q,
-        opts.scale ?? new THREE.Vector3(1, 1, 1)
-      );
-      g.applyMatrix4(m);
-      return g;
-    }
-    function mergedMesh(geoms: THREE.BufferGeometry[], material: THREE.Material) {
-      const merged = mergeGeometries(geoms, false);
-      return new THREE.Mesh(merged, material);
-    }
 
     /* ---------------- LUCES ----------------
      * Sin tone mapping, las intensidades se ven de forma más directa/lineal
@@ -505,19 +479,7 @@ export default function ExperienciaVR() {
      * mismas posiciones, mismo color, mismas sombras) pero con ~6-10 mallas
      * por plato en vez de ~50.
      */
-    const RICE_GEO = new THREE.CylinderGeometry(0.032, 0.032, 0.045, 20);
-    const NORI_GEO = new THREE.CylinderGeometry(0.0335, 0.0335, 0.046, 20, 1, true);
-    const FILL_OUTER_GEO = new THREE.CircleGeometry(0.02, 16);
-    const FILL_INNER_GEO = new THREE.CircleGeometry(0.011, 14);
-    const DRAPE_CAP_GEO = new THREE.SphereGeometry(0.03, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2);
-    const SAUCE_CAP_GEO = new THREE.SphereGeometry(0.036, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2);
-    const CRISPY_STRIP_GEO = new THREE.CylinderGeometry(0.003, 0.003, 0.045, 6);
-    const DRIZZLE_SEG_GEO = new THREE.BoxGeometry(0.05, 0.004, 0.008);
-    const HERB_GEO = new THREE.CircleGeometry(0.006, 6);
-    const SEED_GEO = new THREE.SphereGeometry(0.0035, 6, 6);
-    const PLATE_GEO = new THREE.CylinderGeometry(0.16, 0.17, 0.015, 36);
-    const WASABI_GEO = new THREE.SphereGeometry(0.017, 10, 10);
-    const GINGER_GEO = new THREE.CylinderGeometry(0.03, 0.03, 0.004, 16);
+
 
     function pieceTransform(angle: number, radius: number) {
       return {
@@ -526,173 +488,7 @@ export default function ExperienciaVR() {
       };
     }
 
-    function buildPlate(dish: Dish) {
-      const group = new THREE.Group();
-      group.userData.dishId = dish.id;
 
-      const plate = new THREE.Mesh(
-        PLATE_GEO,
-        new THREE.MeshStandardMaterial({ color: 0x141414, roughness: 0.25, metalness: 0.15 })
-      );
-      plate.receiveShadow = true;
-      group.add(plate);
-
-      const riceGeoms: THREE.BufferGeometry[] = [];
-      const noriGeoms: THREE.BufferGeometry[] = [];
-      const fillOuterGeoms: THREE.BufferGeometry[] = [];
-      const fillInnerGeoms: THREE.BufferGeometry[] = [];
-      const toppingGeoms: THREE.BufferGeometry[] = [];
-
-      const n = 6;
-      for (let i = 0; i < n; i++) {
-        const angle = (i / n) * Math.PI * 2;
-        const pt = pieceTransform(angle, 0.09);
-
-        riceGeoms.push(bakeGeometry(RICE_GEO, pt));
-        noriGeoms.push(bakeGeometry(NORI_GEO, pt));
-
-        if (dish.fillingColor2) {
-          fillOuterGeoms.push(
-            bakeGeometry(FILL_OUTER_GEO, {
-              position: pt.position.clone().setY(0.0226),
-              rotation: new THREE.Euler(-Math.PI / 2, 0, 0),
-            })
-          );
-          fillInnerGeoms.push(
-            bakeGeometry(FILL_INNER_GEO, {
-              position: pt.position.clone().setY(0.0228),
-              rotation: new THREE.Euler(-Math.PI / 2, 0, 0),
-            })
-          );
-        } else {
-          fillOuterGeoms.push(
-            bakeGeometry(FILL_OUTER_GEO, {
-              position: pt.position.clone().setY(0.0226),
-              rotation: new THREE.Euler(-Math.PI / 2, 0, 0),
-            })
-          );
-        }
-
-        const t = dish.topping;
-        if (t?.style === "drape") {
-          toppingGeoms.push(
-            bakeGeometry(DRAPE_CAP_GEO, {
-              position: pt.position.clone().setY(0.0225),
-              rotation: new THREE.Euler(0, Math.random() * Math.PI, 0),
-              scale: new THREE.Vector3(1.15, 0.55, 1.15),
-            })
-          );
-        } else if (t?.style === "sauceCap") {
-          toppingGeoms.push(
-            bakeGeometry(SAUCE_CAP_GEO, {
-              position: pt.position.clone().setY(0.021),
-              scale: new THREE.Vector3(1.05, 0.4, 1.05),
-            })
-          );
-        } else if (t?.style === "crispy") {
-          for (let s = 0; s < 4; s++) {
-            const localOffset = new THREE.Vector3(
-              (Math.random() - 0.5) * 0.02,
-              0.03 + Math.random() * 0.012,
-              (Math.random() - 0.5) * 0.02
-            );
-            toppingGeoms.push(
-              bakeGeometry(CRISPY_STRIP_GEO, {
-                position: pt.position.clone().add(localOffset),
-                rotation: new THREE.Euler(0, Math.random() * Math.PI, Math.PI / 2 + (Math.random() - 0.5) * 0.8),
-              })
-            );
-          }
-        }
-      }
-
-      const riceMesh = mergedMesh(riceGeoms, new THREE.MeshStandardMaterial({ color: dish.riceColor ?? 0xf5f1e6, roughness: 0.95 }));
-      riceMesh.castShadow = true;
-      group.add(riceMesh);
-
-      const noriMesh = mergedMesh(
-        noriGeoms,
-        new THREE.MeshStandardMaterial({ color: 0x1f2a1e, roughness: 0.85, side: THREE.DoubleSide })
-      );
-      noriMesh.castShadow = true;
-      group.add(noriMesh);
-
-      const fillOuterMesh = mergedMesh(
-        fillOuterGeoms,
-        new THREE.MeshStandardMaterial({ color: dish.fillingColor, roughness: 0.5 })
-      );
-      fillOuterMesh.castShadow = true;
-      group.add(fillOuterMesh);
-
-      if (dish.fillingColor2 && fillInnerGeoms.length) {
-        const fillInnerMesh = mergedMesh(
-          fillInnerGeoms,
-          new THREE.MeshStandardMaterial({ color: dish.fillingColor2, roughness: 0.5 })
-        );
-        fillInnerMesh.castShadow = true;
-        group.add(fillInnerMesh);
-      }
-
-      if (dish.topping && toppingGeoms.length) {
-        const toppingMat =
-          dish.topping.style === "sauceCap"
-            ? new THREE.MeshStandardMaterial({ color: dish.topping.color, roughness: 0.25, metalness: 0.05 })
-            : new THREE.MeshStandardMaterial({
-                color: dish.topping.color,
-                roughness: dish.topping.style === "crispy" ? 0.4 : 0.5,
-              });
-        const toppingMesh = mergedMesh(toppingGeoms, toppingMat);
-        toppingMesh.castShadow = true;
-        group.add(toppingMesh);
-      }
-
-      // Salsa (zigzag): mismos segmentos, fusionados en una sola malla.
-      if (dish.drizzle?.style === "zigzag") {
-        const segGeoms: THREE.BufferGeometry[] = [];
-        const segments = 6;
-        for (let i = 0; i < segments; i++) {
-          const t0 = (i / segments - 0.5) * 0.26;
-          segGeoms.push(
-            bakeGeometry(DRIZZLE_SEG_GEO, {
-              position: new THREE.Vector3(t0, 0.04 + (i % 2) * 0.003, (Math.random() - 0.5) * 0.02),
-              rotation: new THREE.Euler(0, Math.PI / 4 + (i % 2) * 0.24, 0),
-            })
-          );
-        }
-        group.add(mergedMesh(segGeoms, new THREE.MeshStandardMaterial({ color: dish.drizzle.color, roughness: 0.3 })));
-      }
-
-      // Guarnición: se agrupa por tipo (mismo color/material) y se fusiona
-      // en una sola malla por tipo, en vez de una malla por semilla/trozo.
-      dish.garnish.forEach((garn) => {
-        const count = garn.count ?? 5;
-        const geoms: THREE.BufferGeometry[] = [];
-        for (let i = 0; i < count; i++) {
-          const angle = Math.random() * Math.PI * 2;
-          const r = 0.03 + Math.random() * 0.11;
-          const position = new THREE.Vector3(Math.cos(angle) * r, 0.036 + Math.random() * 0.004, Math.sin(angle) * r);
-          if (garn.type === "herb") {
-            geoms.push(bakeGeometry(HERB_GEO, { position, rotation: new THREE.Euler(-Math.PI / 2, 0, 0) }));
-          } else {
-            geoms.push(bakeGeometry(SEED_GEO, { position }));
-          }
-        }
-        const mat =
-          garn.type === "herb"
-            ? new THREE.MeshStandardMaterial({ color: garn.color, side: THREE.DoubleSide })
-            : new THREE.MeshStandardMaterial({ color: garn.color });
-        group.add(mergedMesh(geoms, mat));
-      });
-
-      const wasabi = new THREE.Mesh(WASABI_GEO, new THREE.MeshStandardMaterial({ color: 0x8fae4e, roughness: 0.6 }));
-      wasabi.position.set(-0.12, 0.02, 0.12);
-      group.add(wasabi);
-      const ginger = new THREE.Mesh(GINGER_GEO, new THREE.MeshStandardMaterial({ color: 0xe8a3b0, roughness: 0.5 }));
-      ginger.position.set(0.12, 0.016, 0.12);
-      group.add(ginger);
-
-      return group;
-    }
 
     function disposeGroup(g: THREE.Object3D) {
       g.traverse((obj) => {
