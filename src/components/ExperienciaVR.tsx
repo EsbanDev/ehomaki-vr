@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { DISHES } from "@/const/experienciaDishes";
 import type { Dish } from "@/types/experienciaVR";
-import "./ExperienciaVR.css";
+import "@/styles/ExperienciaVR.css";
 
 /**
  * <ExperienciaVR />
