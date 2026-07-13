@@ -1,4 +1,4 @@
-iimport * as THREE from "three";
+import * as THREE from "three";
 import type { Dish } from "@/types/experienciaVR";
 
 import { bakeGeometry, mergedMesh } from "./GeometryUtils";
