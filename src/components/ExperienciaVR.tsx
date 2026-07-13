@@ -7,7 +7,6 @@ import {
     bakeGeometry,
     mergedMesh
 } from "@/vr/dishes/GeometryUtils";
-import { buildPlate } from "@/vr/dishes/MakiGenerator";
 import "@/styles/ExperienciaVR.css";
 
 /**
@@ -468,27 +467,6 @@ export default function ExperienciaVR() {
     );
     soyDish.position.set(0.22, TABLE_TOP_Y + 0.036, -0.15);
     scene.add(soyDish);
-
-    /* ---------------- PLATOS PROCEDURALES ----------------
-     * OPTIMIZACIÓN: antes cada plato generaba hasta ~50 mallas individuales
-     * (una por cada pieza de arroz/nori/relleno/topping, cada segmento de
-     * salsa, cada semilla de guarnición). Como esto se reconstruye CADA VEZ
-     * que se sirve un plato, era el mayor generador de draw calls de toda
-     * la app. Ahora se agrupan por material compartido y se fusionan en
-     * unas pocas mallas — el resultado visual es idéntico (misma geometría,
-     * mismas posiciones, mismo color, mismas sombras) pero con ~6-10 mallas
-     * por plato en vez de ~50.
-     */
-
-
-    function pieceTransform(angle: number, radius: number) {
-      return {
-        position: new THREE.Vector3(Math.cos(angle) * radius, 0.0325, Math.sin(angle) * radius),
-        rotation: new THREE.Euler(0, angle + Math.PI / 6, 0),
-      };
-    }
-
-
 
     function disposeGroup(g: THREE.Object3D) {
       g.traverse((obj) => {
