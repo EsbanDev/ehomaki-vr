@@ -19,6 +19,7 @@ export default function ExperienciaVR() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuOpenRef = useRef(false);
   const [busy, setBusy] = useState(false);
   const [hintVisible, setHintVisible] = useState(true);
   const [currentDishId, setCurrentDishId] = useState<string | null>(null);
@@ -57,6 +58,10 @@ export default function ExperienciaVR() {
     },
     [busy, currentDishId, showStamp]
   );
+
+  useEffect(() => {
+    menuOpenRef.current = menuOpen;
+  }, [menuOpen]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -898,7 +903,7 @@ export default function ExperienciaVR() {
     const ndc = new THREE.Vector2();
     let lastHoverCheck = 0;
     function handleTap(x: number, y: number) {
-      if (menuOpen) return;
+      if (menuOpenRef.current) return;
 	
       if (isZoomed) {
         zoomOut();
