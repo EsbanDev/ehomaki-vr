@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import * as THREE from "three";
+import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { DISHES } from "@/const/experienciaDishes";
 import type { Dish } from "@/types/experienciaVR";
-import "@/styles/ExperienciaVR.css"
+import "./ExperienciaVR.css";
 
 /**
  * <ExperienciaVR />
@@ -68,8 +69,12 @@ export default function ExperienciaVR() {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.25;
+    // Sin tone mapping cinematográfico: ACES comprime el rango dinámico y
+    // aumenta el contraste (brillos más brillantes, sombras más oscuras),
+    // que es justo lo que hacía que la mesa resaltara demasiado y el resto
+    // del entorno/decoración se hundiera en sombra. Sin esa curva, la luz
+    // se ve más pareja en toda la sala, como en la versión de referencia.
+    renderer.toneMapping = THREE.NoToneMapping;
     if ("outputColorSpace" in renderer) {
       (renderer as any).outputColorSpace = THREE.SRGBColorSpace;
     }
@@ -97,26 +102,66 @@ export default function ExperienciaVR() {
     resize();
     window.addEventListener("resize", resize);
 
-    /* ---------------- LUCES ---------------- */
-    scene.add(new THREE.AmbientLight(0x5a4a3a, 1.35));
+    /* ---------------- OPTIMIZACIÓN: fusión de geometría ----------------
+     * Three.js emite un "draw call" por cada Mesh individual. Esta escena
+     * tenía decenas de mallas diminutas (guarniciones, costillas de faroles,
+     * barras de paneles, hojas de bambú, etc.) que se ven idénticas si en
+     * vez de N mallas separadas del mismo material se fusiona su geometría
+     * en UNA sola malla. Visualmente es indistinguible; en CPU es mucho
+     * más barato. `bakeGeometry` clona una geometría y le "hornea" su
+     * transform final (posición/rotación/escala) directamente en los
+     * vértices, para que luego se pueda fusionar con otras vía
+     * `mergeGeometries` sin perder su ubicación relativa.
+     */
+    function bakeGeometry(
+      geo: THREE.BufferGeometry,
+      opts: { position?: THREE.Vector3; rotation?: THREE.Euler; scale?: THREE.Vector3 } = {}
+    ) {
+      const g = geo.clone();
+      const q = new THREE.Quaternion();
+      if (opts.rotation) q.setFromEuler(opts.rotation);
+      const m = new THREE.Matrix4().compose(
+        opts.position ?? new THREE.Vector3(),
+        q,
+        opts.scale ?? new THREE.Vector3(1, 1, 1)
+      );
+      g.applyMatrix4(m);
+      return g;
+    }
+    function mergedMesh(geoms: THREE.BufferGeometry[], material: THREE.Material) {
+      const merged = mergeGeometries(geoms, false);
+      return new THREE.Mesh(merged, material);
+    }
 
-    const key = new THREE.DirectionalLight(0xfff0d2, 0.95);
+    /* ---------------- LUCES ----------------
+     * Sin tone mapping, las intensidades se ven de forma más directa/lineal
+     * (sin la curva que suaviza brillos y sombras), así que se reequilibran
+     * un poco: más luz ambiental de base (para que la decoración en las
+     * esquinas —bambú, repisa del gato— se note bien), la direccional algo
+     * más suave (sombras menos duras) y el foco de la mesa más moderado
+     * (para que resalte el plato sin quemarse en contraste con el resto).
+     */
+    scene.add(new THREE.AmbientLight(0x5a4a3a, 1.55));
+
+    const key = new THREE.DirectionalLight(0xfff0d2, 0.7);
     key.position.set(1.5, 3, 1.5);
     key.castShadow = true;
     key.shadow.mapSize.set(1024, 1024);
     scene.add(key);
 
     // Luz focal cálida sobre la mesa: hace que el plato servido destaque
-    // claramente frente al resto de la sala, como en un restaurante real.
-    const tableSpot = new THREE.SpotLight(0xffd8a0, 3.2, 5, THREE.MathUtils.degToRad(38), 0.45, 1.4);
+    // frente al resto de la sala, sin dominar la escena.
+    // Sin sombra propia: la luz direccional ya aporta las sombras de la
+    // escena, y una segunda pasada de sombra aquí duplicaría el costo de
+    // render por frame sin que se note diferencia (el spot es un realce
+    // de color/brillo, no la fuente principal de sombreado).
+    const tableSpot = new THREE.SpotLight(0xffd8a0, 1.8, 5, THREE.MathUtils.degToRad(40), 0.5, 1.2);
     tableSpot.position.set(0.3, 2.35, 0.15);
-    tableSpot.castShadow = true;
-    tableSpot.shadow.mapSize.set(1024, 1024);
     scene.add(tableSpot);
     scene.add(tableSpot.target);
 
     // Luz de relleno suave cerca del comensal para que la escena no quede plana.
-    const fillLight = new THREE.PointLight(0xffb37a, 0.5, 5, 2);
+    const fillLight = new THREE.PointLight(0xffb37a, 0.65, 5, 2);
     fillLight.position.set(0, 1.6, 0.9);
     scene.add(fillLight);
 
@@ -135,25 +180,24 @@ export default function ExperienciaVR() {
       body.scale.set(1, 1.25, 1);
       g.add(body);
 
-      // costillas de bambú
+      // Costillas de bambú + tapas: mismo material, se fusionan en una sola
+      // malla (antes eran 7 mallas independientes por farol).
       const ribMat = new THREE.MeshStandardMaterial({ color: 0x1a1410, roughness: 0.7 });
+      const ribGeoms: THREE.BufferGeometry[] = [];
       for (let i = 0; i < 5; i++) {
-        const rib = new THREE.Mesh(
-          new THREE.TorusGeometry(0.132 * scale, 0.004, 6, 20),
-          ribMat
+        const rib = new THREE.TorusGeometry(0.132 * scale, 0.004, 6, 20);
+        ribGeoms.push(
+          bakeGeometry(rib, {
+            rotation: new THREE.Euler(Math.PI / 2, (i / 5) * Math.PI, 0),
+            scale: new THREE.Vector3(1, 1.25, 1),
+          })
         );
-        rib.rotation.x = Math.PI / 2;
-        rib.rotation.y = (i / 5) * Math.PI;
-        rib.scale.y = 1.25;
-        g.add(rib);
       }
-
-      const capTop = new THREE.Mesh(new THREE.CylinderGeometry(0.03 * scale, 0.045 * scale, 0.03, 12), ribMat);
-      capTop.position.y = 0.17 * scale;
-      g.add(capTop);
-      const capBottom = capTop.clone();
-      capBottom.position.y = -0.17 * scale;
-      g.add(capBottom);
+      const capGeo = new THREE.CylinderGeometry(0.03 * scale, 0.045 * scale, 0.03, 12);
+      ribGeoms.push(bakeGeometry(capGeo, { position: new THREE.Vector3(0, 0.17 * scale, 0) }));
+      ribGeoms.push(bakeGeometry(capGeo, { position: new THREE.Vector3(0, -0.17 * scale, 0) }));
+      const ribs = mergedMesh(ribGeoms, ribMat);
+      g.add(ribs);
 
       const tassel = new THREE.Mesh(
         new THREE.ConeGeometry(0.012 * scale, 0.09 * scale, 8),
@@ -219,20 +263,33 @@ export default function ExperienciaVR() {
         new THREE.MeshStandardMaterial({ color: 0xe8dcc0, roughness: 0.85, transparent: true, opacity: 0.92 })
       );
       g.add(panel);
+
+      // Barras del marco + borde: mismo material, se fusionan en una sola
+      // malla (antes eran 9 mallas independientes por panel).
       const frameMat = new THREE.MeshStandardMaterial({ color: 0x1a1410, roughness: 0.7 });
+      const barGeoms: THREE.BufferGeometry[] = [];
       for (let i = -1; i <= 1; i++) {
-        const vBar = new THREE.Mesh(new THREE.BoxGeometry(0.025, 2.1, 0.02), frameMat);
-        vBar.position.set(i * 0.5, 0, 0.011);
-        g.add(vBar);
+        barGeoms.push(
+          bakeGeometry(new THREE.BoxGeometry(0.025, 2.1, 0.02), {
+            position: new THREE.Vector3(i * 0.5, 0, 0.011),
+          })
+        );
       }
       for (let j = -2; j <= 2; j++) {
-        const hBar = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.025, 0.02), frameMat);
-        hBar.position.set(0, j * 0.42, 0.011);
-        g.add(hBar);
+        barGeoms.push(
+          bakeGeometry(new THREE.BoxGeometry(1.5, 0.025, 0.02), {
+            position: new THREE.Vector3(0, j * 0.42, 0.011),
+          })
+        );
       }
-      const border = new THREE.Mesh(new THREE.BoxGeometry(1.56, 2.16, 0.03), frameMat);
-      border.position.z = -0.005;
-      g.add(border);
+      barGeoms.push(
+        bakeGeometry(new THREE.BoxGeometry(1.56, 2.16, 0.03), {
+          position: new THREE.Vector3(0, 0, -0.005),
+        })
+      );
+      const frame = mergedMesh(barGeoms, frameMat);
+      g.add(frame);
+
       g.position.set(x, y, z);
       g.rotation.y = rotY;
       scene.add(g);
@@ -256,29 +313,45 @@ export default function ExperienciaVR() {
         roughness: 0.6,
         side: THREE.DoubleSide,
       });
+
+      // Tallos y hojas comparten material dentro de su propio grupo: se
+      // fusionan cada uno en una sola malla (antes eran hasta 20 mallas
+      // independientes). Los tallos conservan sombra (son prominentes y
+      // verticales); las hojas no la necesitan por ser pequeñas y estar
+      // en la parte alta, fuera del alcance visual de una sombra notable.
+      const stalkGeoms: THREE.BufferGeometry[] = [];
+      const leafGeoms: THREE.BufferGeometry[] = [];
       const heights = [1.9, 2.3, 1.6, 2.1];
       heights.forEach((h, i) => {
-        const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.03, h, 10), stalkMat);
         const ox = (Math.random() - 0.5) * 0.18;
         const oz = (Math.random() - 0.5) * 0.18;
-        stalk.position.set(x + ox, h / 2 + 0.32, z + oz);
-        stalk.rotation.z = (Math.random() - 0.5) * 0.06;
-        stalk.castShadow = true;
-        scene.add(stalk);
+        stalkGeoms.push(
+          bakeGeometry(new THREE.CylinderGeometry(0.025, 0.03, h, 10), {
+            position: new THREE.Vector3(x + ox, h / 2 + 0.32, z + oz),
+            rotation: new THREE.Euler(0, 0, (Math.random() - 0.5) * 0.06),
+          })
+        );
 
         for (let k = 0; k < 4; k++) {
-          const leaf = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.22, 4), leafMat);
-          leaf.scale.set(0.35, 1, 1);
-          leaf.position.set(
-            x + ox + (Math.random() - 0.5) * 0.15,
-            h * (0.55 + k * 0.11) + 0.32,
-            z + oz + (Math.random() - 0.5) * 0.15
+          leafGeoms.push(
+            bakeGeometry(new THREE.ConeGeometry(0.05, 0.22, 4), {
+              position: new THREE.Vector3(
+                x + ox + (Math.random() - 0.5) * 0.15,
+                h * (0.55 + k * 0.11) + 0.32,
+                z + oz + (Math.random() - 0.5) * 0.15
+              ),
+              rotation: new THREE.Euler(Math.PI / 2.4, 0, Math.random() * Math.PI * 2),
+              scale: new THREE.Vector3(0.35, 1, 1),
+            })
           );
-          leaf.rotation.z = Math.random() * Math.PI * 2;
-          leaf.rotation.x = Math.PI / 2.4;
-          scene.add(leaf);
         }
       });
+
+      const stalks = mergedMesh(stalkGeoms, stalkMat);
+      stalks.castShadow = true;
+      scene.add(stalks);
+      const leaves = mergedMesh(leafGeoms, leafMat);
+      scene.add(leaves);
     }
     bambooCorner(-3.35, -2.6);
 
@@ -296,26 +369,34 @@ export default function ExperienciaVR() {
       bracket.position.set(0, -0.07, 0);
       g.add(bracket);
 
-      // maneki-neko estilizado
-      const cat = new THREE.Group();
+      // maneki-neko estilizado: cuerpo/cabeza/orejas/brazo comparten el
+      // material blanco y se fusionan en una sola malla (antes 5 mallas).
+      // Collar y cascabel quedan separados por tener materiales distintos.
       const white = new THREE.MeshStandardMaterial({ color: 0xf5f1e6, roughness: 0.5 });
-      const body = new THREE.Mesh(new THREE.SphereGeometry(0.07, 14, 12), white);
-      body.scale.set(1, 1.15, 0.85);
-      body.position.y = 0.09;
-      cat.add(body);
-      const head = new THREE.Mesh(new THREE.SphereGeometry(0.06, 14, 12), white);
-      head.position.set(0, 0.19, 0.01);
-      cat.add(head);
-      const earMat = white;
+      const catGeoms: THREE.BufferGeometry[] = [
+        bakeGeometry(new THREE.SphereGeometry(0.07, 14, 12), {
+          position: new THREE.Vector3(0, 0.09, 0),
+          scale: new THREE.Vector3(1, 1.15, 0.85),
+        }),
+        bakeGeometry(new THREE.SphereGeometry(0.06, 14, 12), {
+          position: new THREE.Vector3(0, 0.19, 0.01),
+        }),
+        bakeGeometry(new THREE.CapsuleGeometry(0.015, 0.06, 4, 8), {
+          position: new THREE.Vector3(0.055, 0.2, 0.02),
+          rotation: new THREE.Euler(0, 0, -0.3),
+        }),
+      ];
       [-1, 1].forEach((s) => {
-        const ear = new THREE.Mesh(new THREE.ConeGeometry(0.018, 0.03, 8), earMat);
-        ear.position.set(s * 0.035, 0.235, 0.01);
-        cat.add(ear);
+        catGeoms.push(
+          bakeGeometry(new THREE.ConeGeometry(0.018, 0.03, 8), {
+            position: new THREE.Vector3(s * 0.035, 0.235, 0.01),
+          })
+        );
       });
-      const arm = new THREE.Mesh(new THREE.CapsuleGeometry(0.015, 0.06, 4, 8), white);
-      arm.position.set(0.055, 0.2, 0.02);
-      arm.rotation.z = -0.3;
-      cat.add(arm);
+      const catBody = mergedMesh(catGeoms, white);
+      catBody.castShadow = true;
+      const cat = new THREE.Group();
+      cat.add(catBody);
       const collar = new THREE.Mesh(
         new THREE.TorusGeometry(0.055, 0.008, 8, 16),
         new THREE.MeshStandardMaterial({ color: 0xb33a2e, roughness: 0.5 })
@@ -329,9 +410,6 @@ export default function ExperienciaVR() {
       );
       bell.position.set(0, 0.13, 0.055);
       cat.add(bell);
-      cat.traverse((m) => {
-        if ((m as THREE.Mesh).isMesh) (m as THREE.Mesh).castShadow = true;
-      });
       cat.position.set(-0.16, 0.02, 0);
       g.add(cat);
 
@@ -412,164 +490,199 @@ export default function ExperienciaVR() {
     soyDish.position.set(0.22, TABLE_TOP_Y + 0.036, -0.15);
     scene.add(soyDish);
 
-    /* ---------------- PLATOS PROCEDURALES ---------------- */
-    function addTopping(pieceGroup: THREE.Group, dish: Dish) {
-      const t = dish.topping;
-      if (!t) return;
-      if (t.style === "drape") {
-        const cap = new THREE.Mesh(
-          new THREE.SphereGeometry(0.03, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2),
-          new THREE.MeshStandardMaterial({ color: t.color, roughness: 0.5 })
-        );
-        cap.scale.set(1.15, 0.55, 1.15);
-        cap.position.y = 0.0225;
-        cap.rotation.y = Math.random() * Math.PI;
-        pieceGroup.add(cap);
-      } else if (t.style === "crispy") {
-        for (let i = 0; i < 4; i++) {
-          const strip = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.003, 0.003, 0.045, 6),
-            new THREE.MeshStandardMaterial({ color: t.color, roughness: 0.4 })
-          );
-          strip.rotation.z = Math.PI / 2 + (Math.random() - 0.5) * 0.8;
-          strip.rotation.y = Math.random() * Math.PI;
-          strip.position.set(
-            (Math.random() - 0.5) * 0.02,
-            0.03 + Math.random() * 0.012,
-            (Math.random() - 0.5) * 0.02
-          );
-          pieceGroup.add(strip);
-        }
-      } else if (t.style === "sauceCap") {
-        const cap = new THREE.Mesh(
-          new THREE.SphereGeometry(0.036, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2),
-          new THREE.MeshStandardMaterial({ color: t.color, roughness: 0.25, metalness: 0.05 })
-        );
-        cap.scale.set(1.05, 0.4, 1.05);
-        cap.position.y = 0.021;
-        pieceGroup.add(cap);
-      }
-    }
+    /* ---------------- PLATOS PROCEDURALES ----------------
+     * OPTIMIZACIÓN: antes cada plato generaba hasta ~50 mallas individuales
+     * (una por cada pieza de arroz/nori/relleno/topping, cada segmento de
+     * salsa, cada semilla de guarnición). Como esto se reconstruye CADA VEZ
+     * que se sirve un plato, era el mayor generador de draw calls de toda
+     * la app. Ahora se agrupan por material compartido y se fusionan en
+     * unas pocas mallas — el resultado visual es idéntico (misma geometría,
+     * mismas posiciones, mismo color, mismas sombras) pero con ~6-10 mallas
+     * por plato en vez de ~50.
+     */
+    const RICE_GEO = new THREE.CylinderGeometry(0.032, 0.032, 0.045, 20);
+    const NORI_GEO = new THREE.CylinderGeometry(0.0335, 0.0335, 0.046, 20, 1, true);
+    const FILL_OUTER_GEO = new THREE.CircleGeometry(0.02, 16);
+    const FILL_INNER_GEO = new THREE.CircleGeometry(0.011, 14);
+    const DRAPE_CAP_GEO = new THREE.SphereGeometry(0.03, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2);
+    const SAUCE_CAP_GEO = new THREE.SphereGeometry(0.036, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2);
+    const CRISPY_STRIP_GEO = new THREE.CylinderGeometry(0.003, 0.003, 0.045, 6);
+    const DRIZZLE_SEG_GEO = new THREE.BoxGeometry(0.05, 0.004, 0.008);
+    const HERB_GEO = new THREE.CircleGeometry(0.006, 6);
+    const SEED_GEO = new THREE.SphereGeometry(0.0035, 6, 6);
+    const PLATE_GEO = new THREE.CylinderGeometry(0.16, 0.17, 0.015, 36);
+    const WASABI_GEO = new THREE.SphereGeometry(0.017, 10, 10);
+    const GINGER_GEO = new THREE.CylinderGeometry(0.03, 0.03, 0.004, 16);
 
-    function buildMakiPiece(dish: Dish) {
-      const g = new THREE.Group();
-      const rice = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.032, 0.032, 0.045, 20),
-        new THREE.MeshStandardMaterial({ color: dish.riceColor ?? 0xf5f1e6, roughness: 0.95 })
-      );
-      g.add(rice);
-      const nori = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.0335, 0.0335, 0.046, 20, 1, true),
-        new THREE.MeshStandardMaterial({ color: 0x1f2a1e, roughness: 0.85, side: THREE.DoubleSide })
-      );
-      g.add(nori);
-
-      if (dish.fillingColor2) {
-        const outer = new THREE.Mesh(
-          new THREE.CircleGeometry(0.02, 16),
-          new THREE.MeshStandardMaterial({ color: dish.fillingColor, roughness: 0.5 })
-        );
-        outer.rotation.x = -Math.PI / 2;
-        outer.position.y = 0.0226;
-        g.add(outer);
-        const inner = new THREE.Mesh(
-          new THREE.CircleGeometry(0.011, 14),
-          new THREE.MeshStandardMaterial({ color: dish.fillingColor2, roughness: 0.5 })
-        );
-        inner.rotation.x = -Math.PI / 2;
-        inner.position.y = 0.0228;
-        g.add(inner);
-      } else {
-        const filling = new THREE.Mesh(
-          new THREE.CircleGeometry(0.02, 16),
-          new THREE.MeshStandardMaterial({ color: dish.fillingColor, roughness: 0.5 })
-        );
-        filling.rotation.x = -Math.PI / 2;
-        filling.position.y = 0.0226;
-        g.add(filling);
-      }
-
-      addTopping(g, dish);
-      g.traverse((m) => {
-        if ((m as THREE.Mesh).isMesh) (m as THREE.Mesh).castShadow = true;
-      });
-      return g;
-    }
-
-    function addPlateDrizzle(plateGroup: THREE.Group, dish: Dish) {
-      const d = dish.drizzle;
-      if (!d || d.style !== "zigzag") return;
-      const segments = 6;
-      for (let i = 0; i < segments; i++) {
-        const t0 = (i / segments - 0.5) * 0.26;
-        const seg = new THREE.Mesh(
-          new THREE.BoxGeometry(0.05, 0.004, 0.008),
-          new THREE.MeshStandardMaterial({ color: d.color, roughness: 0.3 })
-        );
-        seg.position.set(t0, 0.04 + (i % 2) * 0.003, (Math.random() - 0.5) * 0.02);
-        seg.rotation.y = Math.PI / 4 + (i % 2) * 0.24;
-        plateGroup.add(seg);
-      }
-    }
-
-    function addGarnishDots(plateGroup: THREE.Group, dish: Dish) {
-      dish.garnish.forEach((g) => {
-        const count = g.count ?? 5;
-        for (let i = 0; i < count; i++) {
-          const angle = Math.random() * Math.PI * 2;
-          const r = 0.03 + Math.random() * 0.11;
-          let mesh: THREE.Mesh;
-          if (g.type === "herb") {
-            mesh = new THREE.Mesh(
-              new THREE.CircleGeometry(0.006, 6),
-              new THREE.MeshStandardMaterial({ color: g.color, side: THREE.DoubleSide })
-            );
-            mesh.rotation.x = -Math.PI / 2;
-          } else {
-            mesh = new THREE.Mesh(
-              new THREE.SphereGeometry(0.0035, 6, 6),
-              new THREE.MeshStandardMaterial({ color: g.color })
-            );
-          }
-          mesh.position.set(Math.cos(angle) * r, 0.036 + Math.random() * 0.004, Math.sin(angle) * r);
-          plateGroup.add(mesh);
-        }
-      });
+    function pieceTransform(angle: number, radius: number) {
+      return {
+        position: new THREE.Vector3(Math.cos(angle) * radius, 0.0325, Math.sin(angle) * radius),
+        rotation: new THREE.Euler(0, angle + Math.PI / 6, 0),
+      };
     }
 
     function buildPlate(dish: Dish) {
       const group = new THREE.Group();
       group.userData.dishId = dish.id;
+
       const plate = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.16, 0.17, 0.015, 36),
+        PLATE_GEO,
         new THREE.MeshStandardMaterial({ color: 0x141414, roughness: 0.25, metalness: 0.15 })
       );
       plate.receiveShadow = true;
       group.add(plate);
 
+      const riceGeoms: THREE.BufferGeometry[] = [];
+      const noriGeoms: THREE.BufferGeometry[] = [];
+      const fillOuterGeoms: THREE.BufferGeometry[] = [];
+      const fillInnerGeoms: THREE.BufferGeometry[] = [];
+      const toppingGeoms: THREE.BufferGeometry[] = [];
+
       const n = 6;
       for (let i = 0; i < n; i++) {
         const angle = (i / n) * Math.PI * 2;
-        const r = 0.09;
-        const piece = buildMakiPiece(dish);
-        piece.position.set(Math.cos(angle) * r, 0.0325, Math.sin(angle) * r);
-        piece.rotation.y = angle + Math.PI / 6;
-        group.add(piece);
+        const pt = pieceTransform(angle, 0.09);
+
+        riceGeoms.push(bakeGeometry(RICE_GEO, pt));
+        noriGeoms.push(bakeGeometry(NORI_GEO, pt));
+
+        if (dish.fillingColor2) {
+          fillOuterGeoms.push(
+            bakeGeometry(FILL_OUTER_GEO, {
+              position: pt.position.clone().setY(0.0226),
+              rotation: new THREE.Euler(-Math.PI / 2, 0, 0),
+            })
+          );
+          fillInnerGeoms.push(
+            bakeGeometry(FILL_INNER_GEO, {
+              position: pt.position.clone().setY(0.0228),
+              rotation: new THREE.Euler(-Math.PI / 2, 0, 0),
+            })
+          );
+        } else {
+          fillOuterGeoms.push(
+            bakeGeometry(FILL_OUTER_GEO, {
+              position: pt.position.clone().setY(0.0226),
+              rotation: new THREE.Euler(-Math.PI / 2, 0, 0),
+            })
+          );
+        }
+
+        const t = dish.topping;
+        if (t?.style === "drape") {
+          toppingGeoms.push(
+            bakeGeometry(DRAPE_CAP_GEO, {
+              position: pt.position.clone().setY(0.0225),
+              rotation: new THREE.Euler(0, Math.random() * Math.PI, 0),
+              scale: new THREE.Vector3(1.15, 0.55, 1.15),
+            })
+          );
+        } else if (t?.style === "sauceCap") {
+          toppingGeoms.push(
+            bakeGeometry(SAUCE_CAP_GEO, {
+              position: pt.position.clone().setY(0.021),
+              scale: new THREE.Vector3(1.05, 0.4, 1.05),
+            })
+          );
+        } else if (t?.style === "crispy") {
+          for (let s = 0; s < 4; s++) {
+            const localOffset = new THREE.Vector3(
+              (Math.random() - 0.5) * 0.02,
+              0.03 + Math.random() * 0.012,
+              (Math.random() - 0.5) * 0.02
+            );
+            toppingGeoms.push(
+              bakeGeometry(CRISPY_STRIP_GEO, {
+                position: pt.position.clone().add(localOffset),
+                rotation: new THREE.Euler(0, Math.random() * Math.PI, Math.PI / 2 + (Math.random() - 0.5) * 0.8),
+              })
+            );
+          }
+        }
       }
 
-      addPlateDrizzle(group, dish);
-      addGarnishDots(group, dish);
+      const riceMesh = mergedMesh(riceGeoms, new THREE.MeshStandardMaterial({ color: dish.riceColor ?? 0xf5f1e6, roughness: 0.95 }));
+      riceMesh.castShadow = true;
+      group.add(riceMesh);
 
-      const wasabi = new THREE.Mesh(
-        new THREE.SphereGeometry(0.017, 10, 10),
-        new THREE.MeshStandardMaterial({ color: 0x8fae4e, roughness: 0.6 })
+      const noriMesh = mergedMesh(
+        noriGeoms,
+        new THREE.MeshStandardMaterial({ color: 0x1f2a1e, roughness: 0.85, side: THREE.DoubleSide })
       );
+      noriMesh.castShadow = true;
+      group.add(noriMesh);
+
+      const fillOuterMesh = mergedMesh(
+        fillOuterGeoms,
+        new THREE.MeshStandardMaterial({ color: dish.fillingColor, roughness: 0.5 })
+      );
+      fillOuterMesh.castShadow = true;
+      group.add(fillOuterMesh);
+
+      if (dish.fillingColor2 && fillInnerGeoms.length) {
+        const fillInnerMesh = mergedMesh(
+          fillInnerGeoms,
+          new THREE.MeshStandardMaterial({ color: dish.fillingColor2, roughness: 0.5 })
+        );
+        fillInnerMesh.castShadow = true;
+        group.add(fillInnerMesh);
+      }
+
+      if (dish.topping && toppingGeoms.length) {
+        const toppingMat =
+          dish.topping.style === "sauceCap"
+            ? new THREE.MeshStandardMaterial({ color: dish.topping.color, roughness: 0.25, metalness: 0.05 })
+            : new THREE.MeshStandardMaterial({
+                color: dish.topping.color,
+                roughness: dish.topping.style === "crispy" ? 0.4 : 0.5,
+              });
+        const toppingMesh = mergedMesh(toppingGeoms, toppingMat);
+        toppingMesh.castShadow = true;
+        group.add(toppingMesh);
+      }
+
+      // Salsa (zigzag): mismos segmentos, fusionados en una sola malla.
+      if (dish.drizzle?.style === "zigzag") {
+        const segGeoms: THREE.BufferGeometry[] = [];
+        const segments = 6;
+        for (let i = 0; i < segments; i++) {
+          const t0 = (i / segments - 0.5) * 0.26;
+          segGeoms.push(
+            bakeGeometry(DRIZZLE_SEG_GEO, {
+              position: new THREE.Vector3(t0, 0.04 + (i % 2) * 0.003, (Math.random() - 0.5) * 0.02),
+              rotation: new THREE.Euler(0, Math.PI / 4 + (i % 2) * 0.24, 0),
+            })
+          );
+        }
+        group.add(mergedMesh(segGeoms, new THREE.MeshStandardMaterial({ color: dish.drizzle.color, roughness: 0.3 })));
+      }
+
+      // Guarnición: se agrupa por tipo (mismo color/material) y se fusiona
+      // en una sola malla por tipo, en vez de una malla por semilla/trozo.
+      dish.garnish.forEach((garn) => {
+        const count = garn.count ?? 5;
+        const geoms: THREE.BufferGeometry[] = [];
+        for (let i = 0; i < count; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const r = 0.03 + Math.random() * 0.11;
+          const position = new THREE.Vector3(Math.cos(angle) * r, 0.036 + Math.random() * 0.004, Math.sin(angle) * r);
+          if (garn.type === "herb") {
+            geoms.push(bakeGeometry(HERB_GEO, { position, rotation: new THREE.Euler(-Math.PI / 2, 0, 0) }));
+          } else {
+            geoms.push(bakeGeometry(SEED_GEO, { position }));
+          }
+        }
+        const mat =
+          garn.type === "herb"
+            ? new THREE.MeshStandardMaterial({ color: garn.color, side: THREE.DoubleSide })
+            : new THREE.MeshStandardMaterial({ color: garn.color });
+        group.add(mergedMesh(geoms, mat));
+      });
+
+      const wasabi = new THREE.Mesh(WASABI_GEO, new THREE.MeshStandardMaterial({ color: 0x8fae4e, roughness: 0.6 }));
       wasabi.position.set(-0.12, 0.02, 0.12);
       group.add(wasabi);
-      const ginger = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.03, 0.03, 0.004, 16),
-        new THREE.MeshStandardMaterial({ color: 0xe8a3b0, roughness: 0.5 })
-      );
+      const ginger = new THREE.Mesh(GINGER_GEO, new THREE.MeshStandardMaterial({ color: 0xe8a3b0, roughness: 0.5 }));
       ginger.position.set(0.12, 0.016, 0.12);
       group.add(ginger);
 
@@ -783,7 +896,10 @@ export default function ExperienciaVR() {
 
     const raycaster = new THREE.Raycaster();
     const ndc = new THREE.Vector2();
+    let lastHoverCheck = 0;
     function handleTap(x: number, y: number) {
+      if (menuOpen) return;
+	
       if (isZoomed) {
         zoomOut();
         return;
@@ -805,12 +921,17 @@ export default function ExperienciaVR() {
       if (!moved) handleTap(x, y);
     }
     function pointerDown(e: PointerEvent) {
+      if (e.target !== canvas) return;
+
       canvas.setPointerCapture(e.pointerId);
       onDown(e.clientX, e.clientY);
     }
     function pointerMove(e: PointerEvent) {
       onMove(e.clientX, e.clientY);
       if (!dragging && currentPlate) {
+        const now = performance.now();
+        if (now - lastHoverCheck < 65) return;
+        lastHoverCheck = now;
         const rect = canvas.getBoundingClientRect();
         ndc.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
         ndc.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
@@ -820,12 +941,14 @@ export default function ExperienciaVR() {
       }
     }
     function pointerUp(e: PointerEvent) {
+      if (e.target !== canvas) return;
+
       onUp(e.clientX, e.clientY);
     }
 
     canvas.addEventListener("pointerdown", pointerDown);
-    window.addEventListener("pointermove", pointerMove);
-    window.addEventListener("pointerup", pointerUp);
+    canvas.addEventListener("pointermove", pointerMove);
+    canvas.addEventListener("pointerup", pointerUp);
 
     /* ---------------- BUCLE DE RENDER ---------------- */
     let rafId = 0;
