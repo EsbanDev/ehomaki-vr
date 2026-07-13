@@ -68,6 +68,7 @@ export default function OrderModal({
     if (typeof window === "undefined") return false;
     return localStorage.getItem("keepName") === "true";
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const payloadOrden = orden.map((item) => ({
     catalogId: item.id,
@@ -202,8 +203,14 @@ export default function OrderModal({
   };
 
   const enviarPedido = async () => {
-    await createOrder(payload);
-    deleteCart(); // Limpiar el carrito después de enviar
+    setIsSubmitting(true);
+    try {
+      await createOrder(payload);
+      deleteCart(); // Limpiar el carrito después de enviar
+      handleClose(); // Cerrar el modal después de enviar exitosamente
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -377,7 +384,7 @@ export default function OrderModal({
                   </svg>
                 </div>
                 <span className="text-sm text-white/50 peer-checked:text-white/70 transition-colors">
-                  Recordar mi nombre para futuros pedidos
+                  Guardar para futuros pedidos
                 </span>
               </label>
             </div>
@@ -537,11 +544,12 @@ export default function OrderModal({
             <button
               type="button"
               disabled={
-                step === 1
+                isSubmitting ||
+                (step === 1
                   ? !isNameValid
                   : step === 2 && envio === "delivery"
                     ? !isAddressValid
-                    : !canConfirm
+                    : !canConfirm)
               }
               onClick={() => {
                 if (step === 1) {
@@ -565,11 +573,13 @@ export default function OrderModal({
                 disabled:cursor-not-allowed disabled:opacity-30
               "
             >
-              {step === 1
-                ? "Siguiente"
-                : step === totalSteps
-                  ? "Confirmar pedido"
-                  : "Siguiente"}
+              {isSubmitting
+                ? "Cargando..."
+                : step === 1
+                  ? "Siguiente"
+                  : step === totalSteps
+                    ? "Confirmar pedido"
+                    : "Siguiente"}
             </button>
           </div>
           <div

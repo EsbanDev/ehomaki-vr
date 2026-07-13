@@ -1,22 +1,88 @@
-import { getAllOrders } from "@/services/order-service";
-import { useEffect, useState } from "react";
+import { getAllOrders, subscribeToOrders } from "@/services/order-service";
+import { useEffect, useMemo, useState } from "react";
 import type { Order } from "@/types/order.types";
 import { COLUMNS } from "@/const/columns-orders";
 import { KanbanColumn } from "@/components/cards/kanban-column";
-import { BillModal } from "@/components/modals/bill-modal";
+import { BillAdminModal } from "@/components/modals/bill-admin-modal";
+
+type DateFilter = "today" | "week" | "all";
+
+const DATE_FILTERS: { key: DateFilter; label: string }[] = [
+  { key: "today", label: "Hoy" },
+  { key: "week", label: "Esta semana" },
+  { key: "all", label: "Todos" },
+];
+
+function isSameDay(date: Date, reference: Date): boolean {
+  return (
+    date.getFullYear() === reference.getFullYear() &&
+    date.getMonth() === reference.getMonth() &&
+    date.getDate() === reference.getDate()
+  );
+}
+
+function isWithinLastWeek(date: Date, reference: Date): boolean {
+  const sevenDaysAgo = new Date(reference);
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  return date >= sevenDaysAgo;
+}
+
+function filterOrdersByDate(orders: Order[], filter: DateFilter): Order[] {
+  if (filter === "all") return orders;
+
+  const now = new Date();
+
+  return orders.filter((order) => {
+    const createdAt = new Date(order.created_at);
+    return filter === "today"
+      ? isSameDay(createdAt, now)
+      : isWithinLastWeek(createdAt, now);
+  });
+}
 
 export function PedidosApp() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [dateFilter, setDateFilter] = useState<DateFilter>("today");
+
+  // useEffect(() => {
+  //   getAllOrders()
+  //     .then(setOrders)
+  //     .catch(() => setError("No se pudieron cargar los pedidos."))
+  //     .finally(() => setLoading(false));
+  // }, []);
 
   useEffect(() => {
     getAllOrders()
       .then(setOrders)
       .catch(() => setError("No se pudieron cargar los pedidos."))
       .finally(() => setLoading(false));
+
+    const unsubscribe = subscribeToOrders((payload) => {
+      if (payload.eventType === "INSERT") {
+        // Nota: el nuevo registro no trae items/details anidados todavía
+        // porque el evento solo entrega la fila de "orders"
+        getAllOrders().then(setOrders);
+      }
+
+      if (payload.eventType === "UPDATE") {
+        setOrders((prev) =>
+          prev.map((order) =>
+            order.id === payload.new.id ? { ...order, ...payload.new } : order,
+          ),
+        );
+      }
+    });
+
+    return unsubscribe;
   }, []);
+
+  const filteredOrders = useMemo(
+    () => filterOrdersByDate(orders, dateFilter),
+    [orders, dateFilter],
+  );
 
   if (loading) {
     return (
@@ -39,7 +105,7 @@ export function PedidosApp() {
 
   const grouped = COLUMNS.reduce<Record<Order["status"], Order[]>>(
     (acc, col) => {
-      acc[col.key] = orders.filter((o) => o.status === col.key);
+      acc[col.key] = filteredOrders.filter((o) => o.status === col.key);
       return acc;
     },
     {} as Record<Order["status"], Order[]>,
@@ -57,6 +123,26 @@ export function PedidosApp() {
         </h1>
 
         <div className="mt-4 h-1 w-20 rounded-full bg-(--gold)" />
+
+        <div className="mt-6 flex gap-2">
+          {DATE_FILTERS.map((filter) => (
+            <button
+              key={filter.key}
+              type="button"
+              onClick={() => setDateFilter(filter.key)}
+              className={`
+                rounded-full px-4 py-2 text-sm font-medium transition-colors
+                ${
+                  dateFilter === filter.key
+                    ? "bg-(--gold) text-black"
+                    : "border border-[#2a2520] bg-[#161410] text-[#b4a58c] hover:border-(--gold)/40"
+                }
+              `}
+            >
+              {filter.label}
+            </button>
+          ))}
+        </div>
       </header>
       <div className="flex gap-4 overflow-x-auto pb-4">
         {COLUMNS.map((col) => (
@@ -69,10 +155,10 @@ export function PedidosApp() {
         ))}
       </div>
       {selectedOrder && (
-        <BillModal 
-          isVisible={!!selectedOrder} 
-          order={selectedOrder} 
-          onClose={() => setSelectedOrder(null)} 
+        <BillAdminModal
+          isVisible={!!selectedOrder}
+          order={selectedOrder}
+          onClose={() => setSelectedOrder(null)}
         />
       )}
     </div>

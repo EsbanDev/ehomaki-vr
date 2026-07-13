@@ -1,6 +1,56 @@
 import { supabase } from "../lib/supabase";
 import type { CreateOrderPayload, Order } from "../types/order.types";
 
+import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+
+/**
+ * Se suscribe a cambios en tiempo real de la tabla orders (insert/update).
+ * Retorna la función para cancelar la suscripción.
+ */
+export function subscribeToOrders(
+    onChange: (payload: RealtimePostgresChangesPayload<Order>) => void
+): () => void {
+    const channel = supabase
+        .channel("orders-changes")
+        .on(
+            "postgres_changes",
+            { event: "*", schema: "public", table: "orders" },
+            onChange
+        )
+        .subscribe();
+
+    return () => {
+        supabase.removeChannel(channel);
+    };
+}
+
+/**
+ * Se suscribe a cambios de estado de todas las órdenes de un guest.
+ * Pensado para la lista de pedidos del cliente.
+ */
+export function subscribeToGuestOrders(
+    guestId: string,
+    onChange: (updatedOrder: Order) => void
+): () => void {
+    const channel = supabase
+        .channel(`guest-orders-${guestId}`)
+        .on(
+            "postgres_changes",
+            {
+                event: "UPDATE",
+                schema: "public",
+                table: "orders",
+                filter: `guest_id=eq.${guestId}`,
+            },
+            (payload) => onChange(payload.new as Order)
+        )
+        .subscribe();
+
+    return () => {
+        supabase.removeChannel(channel);
+    };
+}
+
 /**
  * Obtiene todas las órdenes. Solo para uso del panel admin.
  */

@@ -1,15 +1,28 @@
 import type { Order } from "@/types/order.types";
 
-export function OrderCard({ order, onOrderClick }: { order: Order; onOrderClick: (order: Order) => void }) {
+export function OrderCard({
+  order,
+  onOrderClick,
+}: {
+  order: Order;
+  onOrderClick: (order: Order) => void;
+}) {
   return (
-    <div className="rounded-xl border border-[#2a2520] bg-[#161410] p-4 shadow-sm hover:border-[#c9973a]/30 transition-colors cursor-pointer" onClick={() => onOrderClick(order)}>
+    <div
+      className="rounded-xl border border-[#2a2520] bg-[#161410] p-4 shadow-sm hover:border-[#c9973a]/30 transition-colors cursor-pointer"
+      onClick={() => onOrderClick(order)}
+    >
       <div className="flex items-center justify-between mb-1">
         <span className="text-sm font-medium text-[#faf7f2]">
           {order.customer_name}
         </span>
       </div>
       <p className="text-xs text-[#b4a58c] mb-3">
-        {new Date(order.createdAt).toLocaleString("es-PE")}
+        {new Date(order.created_at).toLocaleDateString("es-PE", {
+          weekday: "short",
+          day: "numeric",
+          month: "short",
+        })}
       </p>
       <ul className="flex flex-col gap-1.5 mb-3">
         {order.items.map((item) => (

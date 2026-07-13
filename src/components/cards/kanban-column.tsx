@@ -24,7 +24,13 @@ export function KanbanColumn({
       {orders.length === 0 ? (
         <p className="text-xs text-[#b4a58c] text-center py-6">Sin pedidos</p>
       ) : (
-        orders.map((order) => <OrderCard key={order.id} order={order} onOrderClick={onOrderClick} />)
+        orders.map((order) => (
+          <OrderCard
+            key={order.id}
+            order={order}
+            onOrderClick={onOrderClick}
+          />
+        ))
       )}
     </div>
   );
